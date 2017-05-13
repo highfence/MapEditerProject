@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "MapEditer.h"
+#include "InputLayer.h"
 
 const int tempWidth = 800;
 const int tempHeight = 600;
@@ -9,6 +10,7 @@ MapEditer::MapEditer(HINSTANCE hInstance, int nCmdShow)
 {
 	InitWindow();
 	InitDirectX();
+	m_InputLayer = new InputLayer;
 	editerPtr = this;
 }
 

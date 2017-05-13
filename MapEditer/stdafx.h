@@ -1,4 +1,6 @@
 #pragma once
+
+/* Unchangeable Headers */
 #include <Windows.h>
 
 #include <dxgi.h>
@@ -13,3 +15,6 @@
 #pragma comment( lib, "dxgi.lib" )
 #pragma comment( lib, "d3d11.lib" )
 #pragma comment( lib, "d3dx11d.lib" )
+
+/* Private Headers */
+#include "KeyState.h"

@@ -1,5 +1,7 @@
 #pragma once
 
+class InputLayer;
+
 class MapEditer
 {
 public :
@@ -36,6 +38,7 @@ private :
 	/* Common Variables */
 	int m_Width = 0;
 	int m_Height = 0;
+	InputLayer* m_InputLayer = nullptr;
 };
 
 static MapEditer* editerPtr = nullptr;
