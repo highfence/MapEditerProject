@@ -28,6 +28,7 @@ namespace DirectXFramework
 		bool CreateVertexBuffer();
 		bool CreateIndexBuffer();
 		bool CreateDepthStencilTexture();
+		bool CreateRenderState(D3D11_FILL_MODE, D3D11_CULL_MODE);
 
 		bool CalcProc(float deltaTime);
 		void CalculateMatrixForBox(float deltaTime);
@@ -62,6 +63,9 @@ namespace DirectXFramework
 
 		ID3D11Texture2D*		m_pDepthStencil		= nullptr;
 		ID3D11DepthStencilView* m_pDepthStencilView = nullptr;
+
+		ID3D11RasterizerState*	m_pSolidRS			= nullptr;
+		ID3D11RasterizerState*	m_pWireframeRS		= nullptr;
 
 		/* Space Matrix */
 		XMMATRIX    m_World;

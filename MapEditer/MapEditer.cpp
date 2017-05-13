@@ -28,6 +28,7 @@ namespace DirectXFramework
 		CreateVertexBuffer();
 		CreateIndexBuffer();
 		CreateConstantBuffer();
+
 		InitMatrix();
 
 		// WndProc이 사용할 수 있도록 포인터 등록.
@@ -69,20 +70,21 @@ namespace DirectXFramework
 
 	void MapEditer::CleanUpDevice()
 	{
-		if (m_pDepthStencilView) m_pDepthStencilView->Release();
-		if (m_pConstantBuffer) m_pConstantBuffer->Release();
-		if (m_pIndexBuffer) m_pIndexBuffer->Release();
+		if (m_pSolidRS)          m_pSolidRS->Release();
 
-		if (m_pVertexBuffer) m_pVertexBuffer->Release();
-		if (m_pVertexLayout) m_pVertexLayout->Release();
-		if (m_pVertexShader) m_pVertexShader->Release();
-		if (m_pPixelShader) m_pPixelShader->Release();
+		if (m_pDepthStencilView) m_pDepthStencilView->Release();
+		if (m_pConstantBuffer)   m_pConstantBuffer->Release();
+		if (m_pIndexBuffer)      m_pIndexBuffer->Release();
+
+		if (m_pVertexBuffer)     m_pVertexBuffer->Release();
+		if (m_pVertexLayout)     m_pVertexLayout->Release();
+		if (m_pVertexShader)     m_pVertexShader->Release();
+		if (m_pPixelShader)      m_pPixelShader->Release();
 
 		if (m_pRenderTargetView) m_pRenderTargetView->Release();
-		if (m_pSwapChain) m_pSwapChain->Release();
+		if (m_pSwapChain)        m_pSwapChain->Release();
 		if (m_pImmediateContext) m_pImmediateContext->Release();
-		if (m_pD3DDevice) m_pD3DDevice->Release();
-
+		if (m_pD3DDevice)        m_pD3DDevice->Release();
 	}
 
 	bool MapEditer::InitWindow()
@@ -356,6 +358,20 @@ namespace DirectXFramework
 		return true;
 	}
 
+	bool MapEditer::CreateRenderState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode)
+	{
+		D3D11_RASTERIZER_DESC      rasterizerDesc;
+		ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
+		rasterizerDesc.FillMode = fillMode;		// Fill 옵션
+		rasterizerDesc.CullMode = cullMode;	// Culling 옵션
+		rasterizerDesc.FrontCounterClockwise = false;	  // 앞/뒷면 로직 선택 CCW
+														  // 반시계 방향을 앞면으로 할 것인가?
+		auto hr = m_pD3DDevice->CreateRasterizerState(&rasterizerDesc, &m_pSolidRS);
+
+		if (FAILED(hr)) return false;
+		return true;
+	}
+
 	bool MapEditer::CalcProc(float deltaTime)
 	{
 		return true;
@@ -424,9 +440,13 @@ namespace DirectXFramework
 		m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
 		m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
 
+		CreateRenderState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
+		m_pImmediateContext->RSSetState(m_pSolidRS);
 		CalculateMatrixForBox(deltaTime);
 		m_pImmediateContext->DrawIndexed(36, 0, 0);
 
+		CreateRenderState(D3D11_FILL_WIREFRAME, D3D11_CULL_BACK);
+		m_pImmediateContext->RSSetState(m_pSolidRS);
 		CalculateMatrixForBox2(deltaTime);
 		m_pImmediateContext->DrawIndexed(36, 0, 0);
 		// Render (백버퍼를 프론트버퍼로 그린다.)
