@@ -10,7 +10,11 @@ MapEditer::MapEditer(HINSTANCE hInstance, int nCmdShow)
 {
 	InitWindow();
 	InitDirectX();
+
 	m_InputLayer = new InputLayer;
+	m_InputLayer->Initialize();
+
+	// WndProc이 사용할 수 있도록 포인터 등록.
 	editerPtr = this;
 }
 
@@ -79,13 +83,6 @@ bool MapEditer::InitWindow()
 
 bool MapEditer::CreateDeviceAndSwapChain()
 {
-	return false;
-}
-
-bool MapEditer::InitDirectX()
-{
-	HRESULT hr = S_OK;
-
 	UINT createDeviceFlags = 0;
 #ifdef _DEBUG
 	createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -97,37 +94,47 @@ bool MapEditer::InitDirectX()
 		D3D_FEATURE_LEVEL_10_0,
 	};
 	UINT numFeatureLevels = ARRAYSIZE(featureLevels);
-	DXGI_SWAP_CHAIN_DESC     sd;
+
+	DXGI_SWAP_CHAIN_DESC sd;
 	ZeroMemory(&sd, sizeof(sd));
-	sd.BufferCount = 1;				
+	sd.BufferCount = 1;
 
 	sd.BufferDesc.Width = m_Width;
 	sd.BufferDesc.Height = m_Height;
-	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;	
-	sd.BufferDesc.RefreshRate.Numerator = 60; 	 
-	sd.BufferDesc.RefreshRate.Denominator = 1; 	
+	sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	sd.BufferDesc.RefreshRate.Numerator = 60;
+	sd.BufferDesc.RefreshRate.Denominator = 1;
 
-	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;		 
-	sd.OutputWindow = m_hWnd;			
-	sd.SampleDesc.Count = 1;		
+	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	sd.OutputWindow = m_hWnd;
+	sd.SampleDesc.Count = 1;
 	sd.SampleDesc.Quality = 0;
 	sd.Windowed = TRUE;
 
-	hr = D3D11CreateDeviceAndSwapChain(
+	auto hr = D3D11CreateDeviceAndSwapChain(
 		0,
 		D3D_DRIVER_TYPE_HARDWARE,
-		0,  		            
+		0,
 		createDeviceFlags,
 		featureLevels,
 		numFeatureLevels,
-		D3D11_SDK_VERSION, 
-		&sd, 			
+		D3D11_SDK_VERSION,
+		&sd,
 		&m_pSwapChain,
 		&m_pD3DDevice,
 		&m_FeatureLevel,
 		&m_pImmediateContext);
 
 	if (FAILED(hr)) return false;
+
+	return true;
+}
+
+bool MapEditer::InitDirectX()
+{
+	HRESULT hr = S_OK;
+
+	if (!CreateDeviceAndSwapChain()) return false;
 
 	ID3D11Texture2D* pBackBuffer = NULL;
 	hr = m_pSwapChain->GetBuffer(0,  
@@ -178,7 +185,6 @@ bool MapEditer::DrawProc()
 
 LRESULT MapEditer::MessageHandler(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
-
 	return (DefWindowProc(hWnd, iMessage, wParam, lParam));
 }
 
