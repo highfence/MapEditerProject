@@ -44,5 +44,11 @@
     <ClInclude Include="KeyState.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Definition.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="MyShader.fx" />
   </ItemGroup>
 </Project>
