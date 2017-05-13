@@ -9,6 +9,7 @@ struct  MyVertex
 	XMFLOAT4 color;
 
 	XMFLOAT3 normal;
+	XMFLOAT2 tex;
 };
 
 struct ConstantBuffer

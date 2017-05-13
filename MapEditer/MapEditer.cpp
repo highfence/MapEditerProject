@@ -31,6 +31,7 @@ namespace DirectXFramework
 		CreateRenderState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
 
 		InitMatrix();
+		LoadTexture();
 
 		// WndProc이 사용할 수 있도록 포인터 등록.
 		mapEditerHandler = this;
@@ -71,7 +72,11 @@ namespace DirectXFramework
 
 	void MapEditer::CleanUpDevice()
 	{
+		if (m_pImmediateContext) m_pImmediateContext->ClearState();
+
 		if (m_pSolidRS)          m_pSolidRS->Release();
+		if (m_pSamplerLinear)	 m_pSamplerLinear->Release();
+		if (m_pTextureRV)		 m_pTextureRV->Release();
 
 		if (m_pDepthStencilView) m_pDepthStencilView->Release();
 		if (m_pConstantBuffer)   m_pConstantBuffer->Release();
@@ -233,6 +238,7 @@ namespace DirectXFramework
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
 		UINT   numElements = ARRAYSIZE(layout);
@@ -266,14 +272,14 @@ namespace DirectXFramework
 	{
 		MyVertex vertices[] =
 		{
-			{ XMFLOAT3(-1.0f, 1.0f, -1.0f),  XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f,  0.33f, -0.33f) },
-			{ XMFLOAT3(1.0f, 1.0f, -1.0f),   XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f,  0.33f, -0.33f) },
-			{ XMFLOAT3(1.0f, 1.0f, 1.0f),    XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f,  0.33f,  0.33f) },
-			{ XMFLOAT3(-1.0f, 1.0f, 1.0f),   XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f,  0.33f,  0.33f) },
-			{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f, -0.33f) },
-			{ XMFLOAT3(1.0f, -1.0f, -1.0f),  XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f, -0.33f, -0.33f) },
-			{ XMFLOAT3(1.0f, -1.0f, 1.0f),   XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f, -0.33f,  0.33f) },
-			{ XMFLOAT3(-1.0f, -1.0f, 1.0f),  XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f,  0.33f) },
+			{ XMFLOAT3(-1.0f, 1.0f, -1.0f),  XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f, 0.33f, -0.33f) , XMFLOAT2(1.0f, 1.0f) },
+			{ XMFLOAT3(1.0f, 1.0f, -1.0f),   XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f, 0.33f, -0.33f) , XMFLOAT2(0.0f, 1.0f) },
+			{ XMFLOAT3(1.0f, 1.0f, 1.0f),    XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f, 0.33f, 0.33f) , XMFLOAT2(0.0f, 0.0f) },
+			{ XMFLOAT3(-1.0f, 1.0f, 1.0f),   XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, 0.33f, 0.33f) , XMFLOAT2(1.0f, 0.0f) },
+			{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f, -0.33f) , XMFLOAT2(0.0f, 0.0f) },
+			{ XMFLOAT3(1.0f, -1.0f, -1.0f),  XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f, -0.33f, -0.33f) , XMFLOAT2(1.0f, 0.0f) },
+			{ XMFLOAT3(1.0f, -1.0f, 1.0f),   XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f, -0.33f, 0.33f) , XMFLOAT2(1.0f, 1.0f) },
+			{ XMFLOAT3(-1.0f, -1.0f, 1.0f),  XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f, 0.33f) , XMFLOAT2(0.0f, 1.0f) },
 		};
 
 		D3D11_BUFFER_DESC    bd;
@@ -387,7 +393,7 @@ namespace DirectXFramework
 	{
 		static float accTime = 0;
 
-		accTime += deltaTime / (FLOAT)15;
+		accTime += deltaTime / (FLOAT)100;
 		// 박스를 회전시키기 위한 연산.    위치, 크기를 변경하고자 한다면 SRT를 기억할 것.
 		XMMATRIX mat = XMMatrixRotationY(accTime);
 		mat *= XMMatrixRotationX(-accTime);
@@ -440,7 +446,6 @@ namespace DirectXFramework
 	{
 		float clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
 
-		m_pImmediateContext->RSSetState(m_pSolidRS);
 		m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, clearColor);
 		m_pImmediateContext->ClearDepthStencilView(
 			m_pDepthStencilView,
@@ -461,11 +466,15 @@ namespace DirectXFramework
 		m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
 		m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
 
+		m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTextureRV);
+		m_pImmediateContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
+		m_pImmediateContext->RSSetState(m_pSolidRS);
+
 		CalculateMatrixForBox(deltaTime);
 		m_pImmediateContext->DrawIndexed(36, 0, 0);
 
-		CalculateMatrixForBox2(deltaTime);
-		m_pImmediateContext->DrawIndexed(36, 0, 0);
+		//CalculateMatrixForBox2(deltaTime);
+		//m_pImmediateContext->DrawIndexed(36, 0, 0);
 
 		// Render (백버퍼를 프론트버퍼로 그린다.)
 		m_pSwapChain->Present(0, 0);
@@ -497,6 +506,34 @@ namespace DirectXFramework
 		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbd.CPUAccessFlags = 0;
 		m_pD3DDevice->CreateBuffer(&cbd, NULL, &m_pConstantBuffer);
+	}
+
+	bool MapEditer::LoadTexture()
+	{
+		auto hr = D3DX11CreateShaderResourceViewFromFile(
+			m_pD3DDevice,
+			L"./images.jpg",
+			NULL,
+			NULL,
+			&m_pTextureRV,
+			NULL);
+
+		if (FAILED(hr)) return false;
+
+		D3D11_SAMPLER_DESC 	sampDesc;
+		ZeroMemory(&sampDesc, sizeof(sampDesc));
+		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;   // 선형 보간 밉 레벨 필터링.
+		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;   // U좌표 Address Mode
+		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;   // V좌표 Address Mode
+		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;  // W좌표 Address Mode
+		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER; // 샘플링 데이터 비교 안함
+		sampDesc.MinLOD = 0;			// 최소 Mipmap Range
+		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;	// 최대 Mipmap Range
+
+		hr = m_pD3DDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear); // SamplerState 생성
+		if (FAILED(hr))	return false;
+
+		return true;
 	}
 
 	/*
