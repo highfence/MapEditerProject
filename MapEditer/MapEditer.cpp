@@ -27,6 +27,8 @@ namespace DirectXFramework
 		CreateShader();
 		CreateVertexBuffer();
 		CreateIndexBuffer();
+		CreateConstantBuffer();
+		InitMatrix();
 
 		// WndProc이 사용할 수 있도록 포인터 등록.
 		mapEditerHandler = this;
@@ -44,9 +46,9 @@ namespace DirectXFramework
 		static float AccTime = 0.f;
 		m_pTimer->ProcessTime();
 
-		AccTime += m_pTimer->GetElapsedTime();
 		while (true)
 		{
+			AccTime += m_pTimer->GetElapsedTime();
 			if (PeekMessage(&m_Message, NULL, 0, 0, PM_REMOVE))
 			{
 				if (m_Message.message == WM_QUIT) break;
@@ -67,17 +69,21 @@ namespace DirectXFramework
 
 	void MapEditer::CleanUpDevice()
 	{
-		if (m_pRenderTargetView)
-			m_pRenderTargetView->Release();
+		if (m_pImmediateContext) m_pImmediateContext->ClearState();
 
-		if (m_pImmediateContext)
-			m_pImmediateContext->ClearState();
+		if (m_pConstantBuffer) m_pConstantBuffer->Release();
+		if (m_pIndexBuffer) m_pIndexBuffer->Release();
 
-		if (m_pSwapChain)
-			m_pSwapChain->Release();
+		if (m_pVertexBuffer) m_pVertexBuffer->Release();
+		if (m_pVertexLayout) m_pVertexLayout->Release();
+		if (m_pVertexShader) m_pVertexShader->Release();
+		if (m_pPixelShader) m_pPixelShader->Release();
 
-		if (m_pD3DDevice)
-			m_pD3DDevice->Release();
+		if (m_pRenderTargetView) m_pRenderTargetView->Release();
+		if (m_pSwapChain) m_pSwapChain->Release();
+		if (m_pImmediateContext) m_pImmediateContext->Release();
+		if (m_pD3DDevice) m_pD3DDevice->Release();
+
 	}
 
 	bool MapEditer::InitWindow()
@@ -322,12 +328,26 @@ namespace DirectXFramework
 
 	bool MapEditer::CalcProc(float deltaTime)
 	{
+		CalculateMatrixForBox(deltaTime);
 		return true;
 	}
 
 	void MapEditer::CalculateMatrixForBox(float deltaTime)
 	{
+		static float accTime = 0;
 
+		accTime += deltaTime / (FLOAT)15;
+		// 박스를 회전시키기 위한 연산.    위치, 크기를 변경하고자 한다면 SRT를 기억할 것.
+		XMMATRIX mat = XMMatrixRotationY(accTime);
+		mat *= XMMatrixRotationX(-accTime);
+		m_World = mat;                     // 여기서 g_world는 박스에 대한 Matrix임.
+
+		XMMATRIX wvp = m_World * m_View * m_Projection;
+
+		ConstantBuffer cb;
+		cb.wvp = XMMatrixTranspose(wvp);
+		m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
+		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);// set constant buffer.
 	}
 
 	bool MapEditer::DrawProc()
@@ -348,8 +368,7 @@ namespace DirectXFramework
 		// Set Shader and Draw
 		m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
 		m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
-		m_pImmediateContext->DrawIndexed(6, 0, 0);
-
+		m_pImmediateContext->DrawIndexed(36, 0, 0);
 
 		// Render (백버퍼를 프론트버퍼로 그린다.)
 		m_pSwapChain->Present(0, 0);
