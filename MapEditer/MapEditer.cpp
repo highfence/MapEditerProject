@@ -28,6 +28,7 @@ namespace DirectXFramework
 		CreateVertexBuffer();
 		CreateIndexBuffer();
 		CreateConstantBuffer();
+		CreateRenderState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
 
 		InitMatrix();
 
@@ -227,10 +228,11 @@ namespace DirectXFramework
 
 		if (FAILED(hr)) return false;
 
-		D3D11_INPUT_ELEMENT_DESC	 layout[] =
+		D3D11_INPUT_ELEMENT_DESC layout[] =
 		{
 			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
 		UINT   numElements = ARRAYSIZE(layout);
@@ -245,7 +247,11 @@ namespace DirectXFramework
 		if (FAILED(hr)) return false;
 
 		ID3DBlob *pPSBlob = NULL;
-		D3DX11CompileFromFile(L"MyShader.fx", 0, 0, "PS", "ps_5_0", 0, 0, 0, &pPSBlob, &pErrorBlob, 0);
+		D3DX11CompileFromFile(
+			L"MyShader.fx", 0, 0,
+			"PS", "ps_5_0", 0, 0, 0,
+			&pPSBlob, &pErrorBlob, 0);
+
 		m_pD3DDevice->CreatePixelShader(
 			pPSBlob->GetBufferPointer(),
 			pPSBlob->GetBufferSize(),
@@ -260,14 +266,14 @@ namespace DirectXFramework
 	{
 		MyVertex vertices[] =
 		{
-			{ XMFLOAT3(-1.0f,  1.0f, -1.0f),      XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(1.0f,  1.0f, -1.0f),       XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(1.0f,  1.0f,  1.0f),       XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(-1.0f,  1.0f,  1.0f),      XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(-1.0f, -1.0f, -1.0f),     XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(1.0f, -1.0f, -1.0f),     XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
-			{ XMFLOAT3(1.0f, -1.0f,  1.0f),      XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f) },
-			{ XMFLOAT3(-1.0f, -1.0f,  1.0f),      XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f) },
+			{ XMFLOAT3(-1.0f, 1.0f, -1.0f),  XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f,  0.33f, -0.33f) },
+			{ XMFLOAT3(1.0f, 1.0f, -1.0f),   XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f,  0.33f, -0.33f) },
+			{ XMFLOAT3(1.0f, 1.0f, 1.0f),    XMFLOAT4(0.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f,  0.33f,  0.33f) },
+			{ XMFLOAT3(-1.0f, 1.0f, 1.0f),   XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f,  0.33f,  0.33f) },
+			{ XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT4(1.0f, 0.0f, 1.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f, -0.33f) },
+			{ XMFLOAT3(1.0f, -1.0f, -1.0f),  XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f), XMFLOAT3(0.33f, -0.33f, -0.33f) },
+			{ XMFLOAT3(1.0f, -1.0f, 1.0f),   XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), XMFLOAT3(0.33f, -0.33f,  0.33f) },
+			{ XMFLOAT3(-1.0f, -1.0f, 1.0f),  XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f,  0.33f) },
 		};
 
 		D3D11_BUFFER_DESC    bd;
@@ -391,8 +397,15 @@ namespace DirectXFramework
 
 		ConstantBuffer cb;
 		cb.wvp = XMMatrixTranspose(wvp);
+
+		cb.world = XMMatrixTranspose(m_World);
+		cb.lightDir = m_LightDirection;
+		cb.lightColor = m_LightColor;
+
 		m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
 		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);// set constant buffer.
+
+		m_pImmediateContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	}
 
 	void MapEditer::CalculateMatrixForBox2(float deltaTime)
@@ -412,14 +425,22 @@ namespace DirectXFramework
 		XMMATRIX   wvp = m_World2  *  m_View  *  m_Projection;
 		ConstantBuffer cb;
 		cb.wvp = XMMatrixTranspose(wvp);
+
+		cb.world = XMMatrixTranspose(m_World);
+		cb.lightDir = m_LightDirection;
+		cb.lightColor = m_LightColor;
+
 		m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0);
 		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+
+		m_pImmediateContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	}
 
 	bool MapEditer::DrawProc(float deltaTime)
 	{
 		float clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
 
+		m_pImmediateContext->RSSetState(m_pSolidRS);
 		m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, clearColor);
 		m_pImmediateContext->ClearDepthStencilView(
 			m_pDepthStencilView,
@@ -440,15 +461,12 @@ namespace DirectXFramework
 		m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
 		m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
 
-		CreateRenderState(D3D11_FILL_SOLID, D3D11_CULL_FRONT);
-		m_pImmediateContext->RSSetState(m_pSolidRS);
 		CalculateMatrixForBox(deltaTime);
 		m_pImmediateContext->DrawIndexed(36, 0, 0);
 
-		CreateRenderState(D3D11_FILL_WIREFRAME, D3D11_CULL_BACK);
-		m_pImmediateContext->RSSetState(m_pSolidRS);
 		CalculateMatrixForBox2(deltaTime);
 		m_pImmediateContext->DrawIndexed(36, 0, 0);
+
 		// Render (백버퍼를 프론트버퍼로 그린다.)
 		m_pSwapChain->Present(0, 0);
 		return true;
