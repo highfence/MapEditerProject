@@ -7,7 +7,10 @@ const int tempWidth = 800;
 const int tempHeight = 600;
 
 MapEditer::MapEditer(HINSTANCE hInstance, int nCmdShow)
-	: m_hInstance(hInstance), m_CmdShow(nCmdShow), m_Width(tempWidth), m_Height(tempHeight)
+	: m_hInstance(hInstance),
+	m_CmdShow(nCmdShow),
+	m_Width(tempWidth),
+	m_Height(tempHeight)
 {
 	InitWindow();
 	InitDirectX();
@@ -17,6 +20,7 @@ MapEditer::MapEditer(HINSTANCE hInstance, int nCmdShow)
 
 	CreateShader();
 	CreateVertexBuffer();
+	CreateIndexBuffer();
 
 	// WndProc이 사용할 수 있도록 포인터 등록.
 	editerPtr = this;
@@ -173,6 +177,7 @@ bool MapEditer::CreateViewPort()
 
 bool MapEditer::InitDirectX()
 {
+	if (m_pIndexBuffer) m_pIndexBuffer->Release();
 	if (m_pVertexBuffer) m_pVertexBuffer->Release();
 	if (m_pVertexLayout) m_pVertexLayout->Release();
 	if (m_pVertexShader) m_pVertexShader->Release();
@@ -198,13 +203,18 @@ bool MapEditer::CreateShader()
 
 	if (FAILED(hr)) return false;
 
-	hr = m_pD3DDevice->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), 0, &m_pVertexShader);
+	hr = m_pD3DDevice->CreateVertexShader(
+		pVSBlob->GetBufferPointer(),
+		pVSBlob->GetBufferSize(),
+		0,
+		&m_pVertexShader);
 
 	if (FAILED(hr)) return false;
 
 	D3D11_INPUT_ELEMENT_DESC	 layout[] =
 	{
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 
 	UINT   numElements = ARRAYSIZE(layout);
@@ -220,7 +230,11 @@ bool MapEditer::CreateShader()
 
 	ID3DBlob *pPSBlob = NULL;
 	D3DX11CompileFromFile(L"MyShader.fx", 0, 0, "PS", "ps_5_0", 0, 0, 0,&pPSBlob, &pErrorBlob, 0);
-		m_pD3DDevice->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), 0, &m_pPixelShader);
+		m_pD3DDevice->CreatePixelShader(
+			pPSBlob->GetBufferPointer(),
+			pPSBlob->GetBufferSize(),
+			0,
+			&m_pPixelShader);
 	pPSBlob->Release();
 
 	return true;
@@ -230,9 +244,10 @@ bool MapEditer::CreateVertexBuffer()
 {
 	MyVertex vertices[] =
 	{
-		{ XMFLOAT3(0.0f, 1.0f, 1.0f) },
-		{ XMFLOAT3(0.5f, -0.5f, 1.0f) },
-		{ XMFLOAT3(-0.5f, -0.5f, 1.0f) },
+		{ XMFLOAT3(-0.5f, 0.5f, 1.0f), XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(0.5f, 0.5f,  1.0f) , XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f) },
+		{ XMFLOAT3(0.5f, -0.5f,  0.0f) , XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f) },
+		{ XMFLOAT3(-0.5f, -0.5f, 1.0f) , XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f) },
 	};
 
 	D3D11_BUFFER_DESC    bd;
@@ -250,6 +265,28 @@ bool MapEditer::CreateVertexBuffer()
 		&initData, 
 		&m_pVertexBuffer);
 
+	return true;
+}
+
+bool MapEditer::CreateIndexBuffer()
+{
+	UINT     indices[] =
+	{
+		0, 1, 2,
+		0, 2, 3
+	};
+
+	D3D11_BUFFER_DESC 	ibd;
+	ZeroMemory(&ibd, sizeof(ibd));
+	ibd.ByteWidth = sizeof(indices);       // sizeof(UINT) * 6;
+	ibd.Usage = D3D11_USAGE_IMMUTABLE;
+	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	ibd.CPUAccessFlags = 0;
+
+	D3D11_SUBRESOURCE_DATA 		iinitData;
+	ZeroMemory(&iinitData, sizeof(iinitData));
+	iinitData.pSysMem = indices;
+	m_pD3DDevice->CreateBuffer(&ibd, &iinitData, &m_pIndexBuffer);
 	return true;
 }
 
@@ -271,11 +308,13 @@ bool MapEditer::DrawProc()
 	UINT stride = sizeof(MyVertex);
 	UINT offset = 0;
 	m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
+	m_pImmediateContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	// Set Shader and Draw
 	m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
 	m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
-	m_pImmediateContext->Draw(3, 0);
+	m_pImmediateContext->DrawIndexed(6, 0, 0);
+
 
 	// Render (백버퍼를 프론트버퍼로 그린다.)
 	m_pSwapChain->Present(0, 0);

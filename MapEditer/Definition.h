@@ -6,5 +6,5 @@ using namespace DirectX;
 struct  MyVertex
 {
 	XMFLOAT3 pos;
-	//XMFLOAT4 color;
+	XMFLOAT4 color;
 };

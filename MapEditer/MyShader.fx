@@ -1,9 +1,25 @@
-float4 VS(float4 pos : POSITION) : SV_POSITION
+struct VertexIn
 {
-	return pos;
+	float3 pos : POSITION;
+	float4 color : COLOR;
+};
+
+struct VertexOut
+{
+	float4 pos : SV_POSITION;
+	float4 color : COLOR;
+};
+
+VertexOut VS(VertexIn vIn)
+{
+	VertexOut	 vOut;
+	vOut.pos = float4(vIn.pos, 1.0f);
+	vOut.color = vIn.color;
+
+	return vOut;
 }
 
-float4 PS(float4 pos  : SV_POSITION) : SV_TARGET
+float4 PS(VertexOut vOut) : SV_TARGET
 {
-	return float4(0.0f, 1.0f, 0.0f, 1.0f);
+	return vOut.color;
 }
