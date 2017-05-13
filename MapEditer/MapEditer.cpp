@@ -60,7 +60,7 @@ namespace DirectXFramework
 				if (AccTime > 0.0167f)
 				{
 					if (!CalcProc(AccTime)) break;
-					if (!DrawProc()) break;
+					if (!DrawProc(AccTime)) break;
 					AccTime = 0.f;
 				}
 			}
@@ -328,7 +328,6 @@ namespace DirectXFramework
 
 	bool MapEditer::CalcProc(float deltaTime)
 	{
-		CalculateMatrixForBox(deltaTime);
 		return true;
 	}
 
@@ -350,7 +349,28 @@ namespace DirectXFramework
 		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);// set constant buffer.
 	}
 
-	bool MapEditer::DrawProc()
+	void MapEditer::CalculateMatrixForBox2(float deltaTime)
+	{
+		static float accTime = 0.f;
+
+		accTime += deltaTime / 15;
+		XMMATRIX   scale = XMMatrixScaling(1.0f, 1.0f, 1.0f);   // scale
+		XMMATRIX   rotate = XMMatrixRotationZ(accTime);    // rotate
+		float   moveValue = 5.0f;// move position
+		XMMATRIX   position = XMMatrixTranslation(moveValue, 0.0f, 0.0f);
+		m_World2 = scale  *  rotate  *  position;     // S * R * T
+
+		XMMATRIX   rotate2 = XMMatrixRotationY(-accTime);    // rotate
+		m_World2 *= rotate2;
+
+		XMMATRIX   wvp = m_World2  *  m_View  *  m_Projection;
+		ConstantBuffer cb;
+		cb.wvp = XMMatrixTranspose(wvp);
+		m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0);
+		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+	}
+
+	bool MapEditer::DrawProc(float deltaTime)
 	{
 		float clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
 
@@ -368,8 +388,12 @@ namespace DirectXFramework
 		// Set Shader and Draw
 		m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
 		m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
+
+		CalculateMatrixForBox(deltaTime);
 		m_pImmediateContext->DrawIndexed(36, 0, 0);
 
+		CalculateMatrixForBox2(deltaTime);
+		m_pImmediateContext->DrawIndexed(36, 0, 0);
 		// Render (백버퍼를 프론트버퍼로 그린다.)
 		m_pSwapChain->Present(0, 0);
 		return true;
