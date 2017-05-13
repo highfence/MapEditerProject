@@ -2,6 +2,7 @@
 
 class InputLayer;
 class MyTimer;
+class Camera;
 
 namespace DirectXFramework
 {
@@ -80,14 +81,14 @@ namespace DirectXFramework
 		XMMATRIX    m_Projection;
 
 		/* Common Variables */
-		int         m_Width = 0;
-		int         m_Height = 0;
+		int         m_Width       = 0;
+		int         m_Height      = 0;
 		InputLayer* m_pInputLayer = nullptr;
-		MyTimer*    m_pTimer = nullptr;
-
+		MyTimer*    m_pTimer      = nullptr;
+		Camera*		m_pCamera     = nullptr;
 
 		XMFLOAT4 m_LightDirection = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
-		XMFLOAT4 m_LightColor = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
+		XMFLOAT4 m_LightColor     = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
 
 	};
 
