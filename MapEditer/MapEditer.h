@@ -27,9 +27,12 @@ namespace DirectXFramework
 		bool CreateShader();
 		bool CreateVertexBuffer();
 		bool CreateIndexBuffer();
+		bool CreateDepthStencilTexture();
+
 		bool CalcProc(float deltaTime);
 		void CalculateMatrixForBox(float deltaTime);
 		void CalculateMatrixForBox2(float deltaTime);
+
 		bool DrawProc(float deltaTime);
 
 		void InitMatrix();
@@ -57,7 +60,8 @@ namespace DirectXFramework
 		ID3D11Buffer*           m_pConstantBuffer   = nullptr;
 		D3D_FEATURE_LEVEL       m_FeatureLevel      = D3D_FEATURE_LEVEL_11_0;
 
-
+		ID3D11Texture2D*		m_pDepthStencil		= nullptr;
+		ID3D11DepthStencilView* m_pDepthStencilView = nullptr;
 
 		/* Space Matrix */
 		XMMATRIX    m_World;

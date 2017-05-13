@@ -69,8 +69,7 @@ namespace DirectXFramework
 
 	void MapEditer::CleanUpDevice()
 	{
-		if (m_pImmediateContext) m_pImmediateContext->ClearState();
-
+		if (m_pDepthStencilView) m_pDepthStencilView->Release();
 		if (m_pConstantBuffer) m_pConstantBuffer->Release();
 		if (m_pIndexBuffer) m_pIndexBuffer->Release();
 
@@ -199,17 +198,10 @@ namespace DirectXFramework
 
 	bool MapEditer::InitDirectX()
 	{
-		if (m_pIndexBuffer) m_pIndexBuffer->Release();
-		if (m_pVertexBuffer) m_pVertexBuffer->Release();
-		if (m_pVertexLayout) m_pVertexLayout->Release();
-		if (m_pVertexShader) m_pVertexShader->Release();
-		if (m_pPixelShader) m_pPixelShader->Release();
-
-		if (m_pImmediateContext) m_pImmediateContext->ClearState();
-
 		if (!CreateDeviceAndSwapChain()) return false;
 		if (!CreateRenderTargetView()) return false;
 		if (!CreateViewPort()) return false;
+		if (!CreateDepthStencilTexture()) return false;
 
 		return true;
 	}
@@ -326,6 +318,44 @@ namespace DirectXFramework
 		return true;
 	}
 
+	bool MapEditer::CreateDepthStencilTexture()
+	{
+		// Create depth stencil texture
+		D3D11_TEXTURE2D_DESC descDepth;
+		ZeroMemory(&descDepth, sizeof(descDepth));
+		descDepth.Width = m_Width;
+		descDepth.Height = m_Height;
+		descDepth.MipLevels = 1;
+		descDepth.ArraySize = 1;
+		descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+		descDepth.SampleDesc.Count = 1;
+		descDepth.SampleDesc.Quality = 0;
+		descDepth.Usage = D3D11_USAGE_DEFAULT;
+		descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+		descDepth.CPUAccessFlags = 0;
+		descDepth.MiscFlags = 0;
+		auto hr = m_pD3DDevice->CreateTexture2D(&descDepth, NULL, &m_pDepthStencil);
+
+		if (FAILED(hr)) return false;
+
+		// Create the depth stencil view
+		D3D11_DEPTH_STENCIL_VIEW_DESC 	descDSV;
+		ZeroMemory(&descDSV, sizeof(descDSV));
+		descDSV.Format = descDepth.Format; // == DXGI_FORMAT_D24_UNORM_S8_UINT
+		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+
+		// MSAA를 사용한다면 D3D11_DSV_DIMENSION_TEXTURE2DMS를 써야함
+		descDSV.Texture2D.MipSlice = 0;
+		descDSV.Flags = 0;
+		hr = m_pD3DDevice->CreateDepthStencilView(m_pDepthStencil, &descDSV, &m_pDepthStencilView);
+
+		if (FAILED(hr)) return false;
+
+		m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
+
+		return true;
+	}
+
 	bool MapEditer::CalcProc(float deltaTime)
 	{
 		return true;
@@ -375,6 +405,11 @@ namespace DirectXFramework
 		float clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
 
 		m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, clearColor);
+		m_pImmediateContext->ClearDepthStencilView(
+			m_pDepthStencilView,
+			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+			1.0f,
+			0);
 
 		// Set Input Assembler 
 		m_pImmediateContext->IASetInputLayout(m_pVertexLayout);
