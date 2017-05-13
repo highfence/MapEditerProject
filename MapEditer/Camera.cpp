@@ -226,25 +226,25 @@ void Camera::UpdateViewMatrix()
 	XMStoreFloat3(&m_Up, U);
 	XMStoreFloat3(&m_Look, L);
 
-	mView(0, 0) = m_Right.x;
-	mView(1, 0) = m_Right.y;
-	mView(2, 0) = m_Right.z;
-	mView(3, 0) = x;
+	m_View(0, 0) = m_Right.x;
+	m_View(1, 0) = m_Right.y;
+	m_View(2, 0) = m_Right.z;
+	m_View(3, 0) = x;
 
-	mView(0, 1) = m_Up.x;
-	mView(1, 1) = m_Up.y;
-	mView(2, 1) = m_Up.z;
-	mView(3, 1) = y;
+	m_View(0, 1) = m_Up.x;
+	m_View(1, 1) = m_Up.y;
+	m_View(2, 1) = m_Up.z;
+	m_View(3, 1) = y;
 
-	mView(0, 2) = m_Look.x;
-	mView(1, 2) = m_Look.y;
-	mView(2, 2) = m_Look.z;
-	mView(3, 2) = z;
+	m_View(0, 2) = m_Look.x;
+	m_View(1, 2) = m_Look.y;
+	m_View(2, 2) = m_Look.z;
+	m_View(3, 2) = z;
 
-	mView(0, 3) = 0.0f;
-	mView(1, 3) = 0.0f;
-	mView(2, 3) = 0.0f;
-	mView(3, 3) = 1.0f;
+	m_View(0, 3) = 0.0f;
+	m_View(1, 3) = 0.0f;
+	m_View(2, 3) = 0.0f;
+	m_View(3, 3) = 1.0f;
 }
 
 

@@ -8,8 +8,7 @@
 //    matrix can be obtained.
 //***************************************************************************************
 
-#ifndef CAMERA_H
-#define CAMERA_H
+#pragma once
 
 #include <DirectXMath.h>
 using namespace DirectX;
@@ -90,5 +89,3 @@ private:
 	XMFLOAT4X4 m_View;
 	XMFLOAT4X4 m_Proj;
 };
-
-#endif // CAMERA_H
