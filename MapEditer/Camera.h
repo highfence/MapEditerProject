@@ -73,22 +73,22 @@ public:
 private:
 
 	// Camera coordinate system with coordinates relative to world space.
-	XMFLOAT3 mPosition;
-	XMFLOAT3 mRight;
-	XMFLOAT3 mUp;
-	XMFLOAT3 mLook;
+	XMFLOAT3 m_Position;
+	XMFLOAT3 m_Right;
+	XMFLOAT3 m_Up;
+	XMFLOAT3 m_Look;
 
 	// Cache frustum properties.
-	float mNearZ;
-	float mFarZ;
-	float mAspect;
-	float mFovY;
-	float mNearWindowHeight;
-	float mFarWindowHeight;
+	float m_NearZ;
+	float m_FarZ;
+	float m_Aspect;
+	float m_FovY;
+	float m_NearWindowHeight;
+	float m_FarWindowHeight;
 
 	// Cache View/Proj matrices.
-	XMFLOAT4X4 mView;
-	XMFLOAT4X4 mProj;
+	XMFLOAT4X4 m_View;
+	XMFLOAT4X4 m_Proj;
 };
 
 #endif // CAMERA_H
