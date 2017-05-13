@@ -72,6 +72,7 @@ namespace DirectXFramework
 
 	void MapEditer::CleanUpDevice()
 	{
+		if (m_pFX)				 m_pFX->Release();
 		if (m_pImmediateContext) m_pImmediateContext->ClearState();
 
 		if (m_pSolidRS)          m_pSolidRS->Release();
@@ -216,20 +217,21 @@ namespace DirectXFramework
 
 	bool MapEditer::CreateShader()
 	{
-		ID3DBlob   *pErrorBlob = NULL;
-		ID3DBlob   *pVSBlob = NULL;
+		ID3DBlob * pErrorBlob = nullptr;
+		ID3DBlob * pCompileBlob = nullptr;
 		auto hr = D3DX11CompileFromFile(
-			L"MyShader.fx", 0, 0,
-			"VS", "vs_5_0", 0, 0, 0,
-			&pVSBlob, &pErrorBlob, 0);
+			L"MyShader.fx", 0, 0, 0,
+			"fx_5_0", 0, 0, 0,
+			&pCompileBlob, &pErrorBlob, 0);
 
 		if (FAILED(hr)) return false;
 
-		hr = m_pD3DDevice->CreateVertexShader(
-			pVSBlob->GetBufferPointer(),
-			pVSBlob->GetBufferSize(),
+		hr = D3DX11CreateEffectFromMemory(
+			pCompileBlob->GetBufferPointer(),
+			pCompileBlob->GetBufferSize(),
 			0,
-			&m_pVertexShader);
+			m_pD3DDevice,
+			&m_pFX);
 
 		if (FAILED(hr)) return false;
 
@@ -241,14 +243,19 @@ namespace DirectXFramework
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
+		ID3DX11EffectTechnique* pTech = nullptr;
+		pTech = m_pFX->GetTechniqueByName("NormalTech");
+
+		D3DX11_PASS_DESC passDesc;
+		pTech->GetPassByIndex(0)->GetDesc(&passDesc);
+
 		UINT   numElements = ARRAYSIZE(layout);
 		hr = m_pD3DDevice->CreateInputLayout(
 			layout,
 			numElements,
-			pVSBlob->GetBufferPointer(),
-			pVSBlob->GetBufferSize(),
+			passDesc.pIAInputSignature,
+			passDesc.IAInputSignatureSize,
 			&m_pVertexLayout);
-		pVSBlob->Release();
 
 		if (FAILED(hr)) return false;
 
@@ -263,6 +270,7 @@ namespace DirectXFramework
 			pPSBlob->GetBufferSize(),
 			0,
 			&m_pPixelShader);
+
 		pPSBlob->Release();
 
 		return true;
@@ -394,24 +402,43 @@ namespace DirectXFramework
 		static float accTime = 0;
 
 		accTime += deltaTime / (FLOAT)100;
-		// 박스를 회전시키기 위한 연산.    위치, 크기를 변경하고자 한다면 SRT를 기억할 것.
+		// 박스를 회전시키기 위한 연산. 위치, 크기를 변경하고자 한다면 SRT를 기억할 것.
 		XMMATRIX mat = XMMatrixRotationY(accTime);
 		mat *= XMMatrixRotationX(-accTime);
 		m_World = mat;                     // 여기서 g_world는 박스에 대한 Matrix임.
 
 		XMMATRIX wvp = m_World * m_View * m_Projection;
 
-		ConstantBuffer cb;
-		cb.wvp = XMMatrixTranspose(wvp);
+		ID3DX11EffectMatrixVariable* pWvp = m_pFX->GetVariableByName("wvp")->AsMatrix();
+		pWvp->SetMatrix((float*)(&wvp));
 
-		cb.world = XMMatrixTranspose(m_World);
-		cb.lightDir = m_LightDirection;
-		cb.lightColor = m_LightColor;
+		ID3DX11EffectMatrixVariable* pWorld = m_pFX->GetConstantBufferByName("world")->AsMatrix();
+		pWorld->SetMatrix((float*)(&m_World));
 
-		m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
-		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);// set constant buffer.
+		ID3DX11EffectVectorVariable* pLightDir = m_pFX->GetConstantBufferByName("lightDir")->AsVector();
+		pLightDir->SetFloatVector((float*)&m_LightDirection);
 
-		m_pImmediateContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+		ID3DX11EffectVectorVariable* pLightColor = m_pFX->GetVariableByName("lightColor")->AsVector();
+		pLightColor->SetFloatVector((float*)&m_LightColor);
+
+		// Set Texture
+		ID3DX11EffectShaderResourceVariable* pDiffuseMap = nullptr;
+		pDiffuseMap = m_pFX->GetVariableByName("texDiffuse")->AsShaderResource();
+		pDiffuseMap->SetResource(m_pTextureRV);
+
+		// 사용할 Technique
+		ID3DX11EffectTechnique* tech = nullptr;
+		tech = m_pFX->GetTechniqueByName("NormalTech");
+
+		// Rendering
+		D3DX11_TECHNIQUE_DESC techDesc;
+		tech->GetDesc(&techDesc);
+		for (UINT p = 0; p < techDesc.Passes; ++p)
+		{
+			tech->GetPassByIndex(p)->Apply(0, m_pImmediateContext); // p 값은 Pass 
+
+			m_pImmediateContext->DrawIndexed(36, 0, 0);
+		}
 	}
 
 	void MapEditer::CalculateMatrixForBox2(float deltaTime)
@@ -429,17 +456,30 @@ namespace DirectXFramework
 		m_World2 *= rotate2;
 
 		XMMATRIX   wvp = m_World2  *  m_View  *  m_Projection;
-		ConstantBuffer cb;
-		cb.wvp = XMMatrixTranspose(wvp);
 
-		cb.world = XMMatrixTranspose(m_World);
-		cb.lightDir = m_LightDirection;
-		cb.lightColor = m_LightColor;
+		ID3DX11EffectMatrixVariable* pWvp = m_pFX->GetVariableByName("wvp")->AsMatrix();
+		pWvp->SetMatrix(reinterpret_cast<float*>(&wvp));
 
-		m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0);
-		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+		ID3DX11EffectMatrixVariable* pWorld = m_pFX->GetVariableByName("world")->AsMatrix();
+		pWorld->SetMatrix(reinterpret_cast<float*>(&m_World2));
 
-		m_pImmediateContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+		ID3DX11EffectVectorVariable* pLightDir = m_pFX->GetVariableByName("lightDir")->AsVector();
+		pLightDir->SetFloatVector((float*)&m_LightDirection);
+
+		ID3DX11EffectVectorVariable* pLightColor = m_pFX->GetVariableByName("lightColor")->AsVector();
+		pLightColor->SetFloatVector((float*)&m_LightColor);
+
+		ID3DX11EffectTechnique* pTech = nullptr;
+		pTech = m_pFX->GetTechniqueByName("NormalTech");
+
+		D3DX11_TECHNIQUE_DESC techDesc;
+		pTech->GetDesc(&techDesc);
+		for (UINT p = 0; p < techDesc.Passes; ++p)
+		{
+			pTech->GetPassByIndex(p)->Apply(0, m_pImmediateContext);
+
+			m_pImmediateContext->DrawIndexed(36, 0, 0);
+		}
 	}
 
 	bool MapEditer::DrawProc(float deltaTime)
@@ -463,18 +503,9 @@ namespace DirectXFramework
 		m_pImmediateContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Set Shader and Draw
-		m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
-		m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
-
-		m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTextureRV);
-		m_pImmediateContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
-		m_pImmediateContext->RSSetState(m_pSolidRS);
-
 		CalculateMatrixForBox(deltaTime);
-		m_pImmediateContext->DrawIndexed(36, 0, 0);
 
-		//CalculateMatrixForBox2(deltaTime);
-		//m_pImmediateContext->DrawIndexed(36, 0, 0);
+		CalculateMatrixForBox2(deltaTime);
 
 		// Render (백버퍼를 프론트버퍼로 그린다.)
 		m_pSwapChain->Present(0, 0);

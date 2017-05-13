@@ -71,6 +71,8 @@ namespace DirectXFramework
 		ID3D11ShaderResourceView* m_pTextureRV		  = nullptr;
 		ID3D11SamplerState*		  m_pSamplerLinear	  = nullptr;
 
+		ID3DX11Effect*			  m_pFX				  = nullptr;
+
 		/* Space Matrix */
 		XMMATRIX    m_World;
 		XMMATRIX	m_World2;

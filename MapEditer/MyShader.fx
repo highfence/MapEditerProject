@@ -1,6 +1,20 @@
 Texture2D texDiffuse;
 SamplerState samLinear;
 
+RasterizerState SolidframeRS
+{
+	FillMode = Solid;
+	CullMode = Back;
+	FrontCounterClockwise = false;
+};
+
+RasterizerState WireFrameRS
+{
+	FillMode = Wireframe;
+	CullMode = Back;
+	FrontCounterClockwise = false;
+};
+
 cbuffer ConstantBuffer
 {
 	float4x4 wvp;
@@ -51,4 +65,16 @@ float4 PS(VertexOut vOut) : SV_TARGET
 	finalColor.a = 1.0f;
 
 	return texColor;
+}
+
+technique11 NormalTech
+{
+	pass P0
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetPixelShader(CompileShader(ps_5_0, PS()));
+
+		SetRasterizerState(SolidframeRS);
+	}
+
 }
