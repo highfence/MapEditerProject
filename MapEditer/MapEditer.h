@@ -17,6 +17,8 @@ private :
 
 	bool InitWindow();
 	bool CreateDeviceAndSwapChain();
+	bool CreateRenderTargetView();
+	bool CreateViewPort();
 	bool InitDirectX();
 	bool CalcProc();
 	bool DrawProc();

@@ -130,16 +130,12 @@ bool MapEditer::CreateDeviceAndSwapChain()
 	return true;
 }
 
-bool MapEditer::InitDirectX()
+bool MapEditer::CreateRenderTargetView()
 {
-	HRESULT hr = S_OK;
-
-	if (!CreateDeviceAndSwapChain()) return false;
-
 	ID3D11Texture2D* pBackBuffer = NULL;
-	hr = m_pSwapChain->GetBuffer(0,  
-		__uuidof(ID3D11Texture2D),  	
-		(LPVOID*)&pBackBuffer);     
+	auto hr = m_pSwapChain->GetBuffer(0,
+		__uuidof(ID3D11Texture2D),
+		(LPVOID*)&pBackBuffer);
 
 	if (FAILED(hr)) return false;
 
@@ -155,6 +151,11 @@ bool MapEditer::InitDirectX()
 		&m_pRenderTargetView,
 		NULL);
 
+	return true;
+}
+
+bool MapEditer::CreateViewPort()
+{
 	D3D11_VIEWPORT          vp;
 	vp.Width = m_Width; 
 	vp.Height = m_Height;
@@ -163,6 +164,14 @@ bool MapEditer::InitDirectX()
 	vp.TopLeftX = 0; 
 	vp.TopLeftY = 0;
 	m_pImmediateContext->RSSetViewports(1, &vp);
+	return true;
+}
+
+bool MapEditer::InitDirectX()
+{
+	if (!CreateDeviceAndSwapChain()) return false;
+	if (!CreateRenderTargetView()) return false;
+	if (!CreateViewPort()) return false;
 
 	return true;
 }
