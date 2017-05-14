@@ -12,21 +12,10 @@ namespace DirectXFramework
 		m_Up(0.0f, 1.0f, 0.0f),
 		m_Look(0.0f, 0.0f, 1.0f)
 	{
-		SetLens(0.25f*3.14f, 1.0f, 1.0f, 1000.0f);
 	}
 
 	Camera::~Camera()
 	{
-	}
-
-	XMVECTOR Camera::GetPositionXM()const
-	{
-		return XMLoadFloat3(&m_Position);
-	}
-
-	XMFLOAT3 Camera::GetPosition()const
-	{
-		return m_Position;
 	}
 
 	void Camera::SetPosition(float x, float y, float z)
@@ -41,80 +30,10 @@ namespace DirectXFramework
 		m_Position = v;
 	}
 
-	XMVECTOR Camera::GetRightXM()const
-	{
-		return XMLoadFloat3(&m_Right);
-	}
-
-	XMFLOAT3 Camera::GetRight()const
-	{
-		return m_Right;
-	}
-
-	XMVECTOR Camera::GetUpXM()const
-	{
-		return XMLoadFloat3(&m_Up);
-	}
-
-	XMFLOAT3 Camera::GetUp()const
-	{
-		return m_Up;
-	}
-
-	XMVECTOR Camera::GetLookXM()const
-	{
-		return XMLoadFloat3(&m_Look);
-	}
-
-	XMFLOAT3 Camera::GetLook()const
-	{
-		return m_Look;
-	}
-
-	float Camera::GetNearZ()const
-	{
-		return m_NearZ;
-	}
-
-	float Camera::GetFarZ()const
-	{
-		return m_FarZ;
-	}
-
-	float Camera::GetAspect()const
-	{
-		return m_Aspect;
-	}
-
-	float Camera::GetFovY()const
-	{
-		return m_FovY;
-	}
-
-	float Camera::GetFovX()const
+	float Camera::GetFovX() const
 	{
 		float halfWidth = 0.5f*GetNearWindowWidth();
 		return (float)2.0f * atanf(halfWidth / m_NearZ);
-	}
-
-	float Camera::GetNearWindowWidth()const
-	{
-		return m_Aspect * m_NearWindowHeight;
-	}
-
-	float Camera::GetNearWindowHeight()const
-	{
-		return m_NearWindowHeight;
-	}
-
-	float Camera::GetFarWindowWidth()const
-	{
-		return m_Aspect * m_FarWindowHeight;
-	}
-
-	float Camera::GetFarWindowHeight()const
-	{
-		return m_FarWindowHeight;
 	}
 
 	void Camera::SetLens(float fovY, float aspect, float zn, float zf)

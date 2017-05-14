@@ -22,31 +22,31 @@ namespace DirectXFramework
 		~Camera();
 
 		// Get/Set world camera position.
-		XMVECTOR GetPositionXM() const;
-		XMFLOAT3 GetPosition() const;
+		XMVECTOR GetPositionXM() const { return XMLoadFloat3(&m_Position); };
+		XMFLOAT3 GetPosition() const { return m_Position; };
 		void SetPosition(float x, float y, float z);
 		void SetPosition(const XMFLOAT3& v);
 
 		// Get camera basis vectors.
-		XMVECTOR GetRightXM() const;
-		XMFLOAT3 GetRight() const;
-		XMVECTOR GetUpXM() const;
-		XMFLOAT3 GetUp() const;
-		XMVECTOR GetLookXM() const;
-		XMFLOAT3 GetLook() const;
+		XMVECTOR GetRightXM() const { return XMLoadFloat3(&m_Right); };
+		XMFLOAT3 GetRight() const { return m_Right; };
+		XMVECTOR GetUpXM() const { return XMLoadFloat3(&m_Up); };
+		XMFLOAT3 GetUp() const { return m_Up; };
+		XMVECTOR GetLookXM() const { return XMLoadFloat3(&m_Look); };
+		XMFLOAT3 GetLook() const { return m_Look; };
 
 		// Get frustum properties.
-		float GetNearZ() const;
-		float GetFarZ() const;
-		float GetAspect() const;
-		float GetFovY() const;
+		float GetNearZ() const { return m_NearZ; };
+		float GetFarZ() const { return m_FarZ; };
+		float GetAspect() const { return m_Aspect; };
+		float GetFovY() const { return m_FovY; };
 		float GetFovX() const;
 
 		// Get near and far plane dimensions in view space coordinates.
-		float GetNearWindowWidth() const;
-		float GetNearWindowHeight() const;
-		float GetFarWindowWidth() const;
-		float GetFarWindowHeight() const;
+		float GetNearWindowWidth() const { return m_Aspect * m_NearWindowHeight; };
+		float GetNearWindowHeight() const { return m_NearWindowHeight; };
+		float GetFarWindowWidth() const { return m_Aspect * m_FarWindowHeight; };
+		float GetFarWindowHeight() const { return m_FarWindowHeight; };
 
 		// Set frustum.
 		void SetLens(float fovY, float aspect, float zn, float zf);
