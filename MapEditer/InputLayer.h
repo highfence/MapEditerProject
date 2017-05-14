@@ -9,11 +9,12 @@ public:
 
 	void Initialize();
 
-	void KeyDown(unsigned int);
-	void KeyUp(unsigned int);
+	void Update();
 
 	bool IsKeyDown(unsigned int);
 
 private:
-	bool m_keys[KeyNumber];
+
+	BYTE m_ByKey[KeyNumber];
+	BYTE m_OldKey[KeyNumber];
 };

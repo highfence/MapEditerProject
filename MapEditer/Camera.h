@@ -71,6 +71,8 @@ namespace DirectXFramework
 		// After modifying camera position/orientation, call to rebuild the view matrix.
 		void UpdateViewMatrix();
 
+		float GetMoveSpeed() const { return m_MoveSpeed; };
+
 	private:
 
 		// Camera coordinate system with coordinates relative to world space.
@@ -90,6 +92,8 @@ namespace DirectXFramework
 		// Cache View/Proj matrices.
 		XMFLOAT4X4 m_View;
 		XMFLOAT4X4 m_Proj;
+
+		float m_MoveSpeed = 1.0f;
 	};
 
 }

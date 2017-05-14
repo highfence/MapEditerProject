@@ -24,6 +24,7 @@ namespace DirectXFramework
 		bool CreateRenderTargetView();
 		bool CreateViewPort();
 		bool InitDirectX();
+		void InitMatrix();
 
 		bool CreateShader();
 		bool CreateVertexBuffer();
@@ -42,7 +43,6 @@ namespace DirectXFramework
 
 		bool DrawProc(float deltaTime);
 
-		void InitMatrix();
 		void CreateConstantBuffer();
 		bool LoadTexture();
 

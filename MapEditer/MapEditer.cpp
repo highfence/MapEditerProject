@@ -397,6 +397,7 @@ namespace DirectXFramework
 
 	bool MapEditer::CalcProc(float deltaTime)
 	{
+		m_pInputLayer->Update();
 		OnKeyboardInput(deltaTime);
 		CalculateMatrix();
 		return true;
@@ -493,24 +494,28 @@ namespace DirectXFramework
 		m_Projection = m_pCamera->GetProj();
 	}
 
-	const float moveSpeed = 10.0f;
 	void MapEditer::OnKeyboardInput(float deltaTime)
 	{
+		auto CameraMoveSpeed = m_pCamera->GetMoveSpeed();
 		if (m_pInputLayer->IsKeyDown(VK_W))
 		{
-			m_pCamera->Walk(moveSpeed * deltaTime);
+			m_pCamera->Walk(CameraMoveSpeed * deltaTime);
+			OutputDebugString(L"Key \'W\' Pushed\n");
 		}
 		if (m_pInputLayer->IsKeyDown(VK_S))
 		{
-			m_pCamera->Walk(-moveSpeed * deltaTime);
+			m_pCamera->Walk(-CameraMoveSpeed * deltaTime);
+			OutputDebugString(L"Key \'S\' Pushed\n");
 		}
 		if (m_pInputLayer->IsKeyDown(VK_A))
 		{
-			m_pCamera->Strafe(-moveSpeed * deltaTime);
+			m_pCamera->Strafe(-CameraMoveSpeed * deltaTime);
+			OutputDebugString(L"Key \'A\' Pushed\n");
 		}
 		if (m_pInputLayer->IsKeyDown(VK_D))
 		{
-			m_pCamera->Strafe(moveSpeed * deltaTime);
+			m_pCamera->Strafe(CameraMoveSpeed * deltaTime);
+			OutputDebugString(L"Key \'D\' Pushed\n");
 		}
 
 		m_pCamera->UpdateViewMatrix();
@@ -647,12 +652,6 @@ namespace DirectXFramework
 		case WM_MOUSEMOVE :
 			OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
-
-		case WM_KEYDOWN : 
-			m_pInputLayer->KeyDown(wParam);
-
-		case WM_KEYUP :
-			m_pInputLayer->KeyUp(wParam);
 
 		default:
 			return (DefWindowProc(hWnd, iMessage, wParam, lParam));

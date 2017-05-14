@@ -18,33 +18,46 @@ InputLayer::~InputLayer()
 
 void InputLayer::Initialize()
 {
-	int i;
+}
 
-	// 모든 키가 눌려있지 않은 상태로 초기화.
-	for (i = 0; i < 256; i++)
+void InputLayer::Update()
+{
+	if (GetKeyboardState(m_ByKey))
 	{
-		m_keys[i] = false;
+		for (int i = 0; i < KeyNumber; ++i)
+		{
+			// 현재 키입력이 있는 경우.
+			if (m_ByKey[i] & 0x80)
+			{
+				// 그 전 키입력이 없었다면 시작상태로 만들어준다 (PUSHKEY)
+				if (!m_OldKey[i])
+				{
+					m_OldKey[i] = 1;
+					m_ByKey[i] |= 0x40;
+				}
+				// 아니라면 그냥 누르고 있는 중 (HOLDKEY)
+			}
+			// 키입력이 현재 없는 경우.
+			else
+			{
+				// 그 전 키입력이 없었다면 띄는 상태로 만들어준다. (PULLKEY)
+				if (m_OldKey[i])
+				{
+					m_OldKey[i] = 0;
+					m_ByKey[i] = 0x20;
+				}
+				// 아니라면 그냥 안누르고 있는 상태.
+				else
+				{
+					m_ByKey[i] = 0x10;
+				}
+			}
+		}
 	}
-
-	return;
-}
-
-void InputLayer::KeyDown(unsigned int input)
-{
-	// 키가 눌렸을 경우, true로 바꾸어준다.
-	m_keys[input] = true;
-	return;
-}
-
-void InputLayer::KeyUp(unsigned int input)
-{
-	// 키가 떼졌을 경우, false로 바꾸어준다.
-	m_keys[input] = false;
-	return;
 }
 
 bool InputLayer::IsKeyDown(unsigned int key)
 {
 	// 인자에 해당하는 키가 눌렸는지 반환해준다.
-	return m_keys[key];
+	return (m_ByKey[key] & HOLDKEY);
 }
