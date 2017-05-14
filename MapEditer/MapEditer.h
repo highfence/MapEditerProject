@@ -34,6 +34,11 @@ namespace DirectXFramework
 		bool CalcProc(float deltaTime);
 		void CalculateMatrixForBox(float deltaTime);
 		void CalculateMatrixForBox2(float deltaTime);
+		void CalculateMatrix();
+		void OnKeyboardInput(float deltaTime);
+		void OnMouseDown(WPARAM btnState, int x, int y);
+		void OnMouseUp(WPARAM btnState, int x, int y);
+		void OnMouseMove(WPARAM btnState, int x, int y);
 
 		bool DrawProc(float deltaTime);
 
@@ -81,11 +86,12 @@ namespace DirectXFramework
 		XMMATRIX    m_Projection;
 
 		/* Common Variables */
-		int         m_Width       = 0;
-		int         m_Height      = 0;
-		InputLayer* m_pInputLayer = nullptr;
-		MyTimer*    m_pTimer      = nullptr;
-		Camera*		m_pCamera     = nullptr;
+		int         m_Width        = 0;
+		int         m_Height       = 0;
+		InputLayer* m_pInputLayer  = nullptr;
+		MyTimer*    m_pTimer       = nullptr;
+		Camera*		m_pCamera      = nullptr;
+		POINT		m_LastMousePos;
 
 		XMFLOAT4 m_LightDirection = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
 		XMFLOAT4 m_LightColor     = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
