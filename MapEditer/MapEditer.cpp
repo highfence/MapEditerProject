@@ -215,8 +215,9 @@ namespace DirectXFramework
 	{
 		bool retval = true;
 		retval = retval && CreateShader();
-		retval = retval && CreateVertexBuffer();
-		retval = retval && CreateIndexBuffer();
+		retval = retval && BuildGeometryBuffers();
+		//retval = retval && CreateVertexBuffer();
+		//retval = retval && CreateIndexBuffer();
 		retval = retval && CreateConstantBuffer();
 		retval = retval && CreateRenderState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
 		return true;
@@ -456,16 +457,16 @@ namespace DirectXFramework
 		static float accTime = 0.f;
 
 		accTime += deltaTime / 15;
-		XMMATRIX   scale = XMMatrixScaling(1.0f, 1.0f, 1.0f);   // scale
-		XMMATRIX   rotate = XMMatrixRotationZ(accTime);    // rotate
-		float   moveValue = 5.0f;// move position
-		XMMATRIX   position = XMMatrixTranslation(moveValue, 0.0f, 0.0f);
-		m_World2 = scale  *  rotate  *  position;     // S * R * T
+		XMMATRIX scale = XMMatrixScaling(1.0f, 1.0f, 1.0f);   // scale
+		XMMATRIX rotate = XMMatrixRotationZ(accTime);    // rotate
+		float moveValue = 5.0f;// move position
+		XMMATRIX position = XMMatrixTranslation(moveValue, 0.0f, 0.0f);
+		m_World2 = scale * rotate * position;     // S * R * T
 
-		XMMATRIX   rotate2 = XMMatrixRotationY(-accTime);    // rotate
+		XMMATRIX rotate2 = XMMatrixRotationY(-accTime);    // rotate
 		m_World2 *= rotate2;
 
-		XMMATRIX   wvp = m_World2  *  m_View  *  m_Projection;
+		XMMATRIX wvp = m_World2  *  m_View  *  m_Projection;
 
 		ID3DX11EffectMatrixVariable* pWvp = m_pFX->GetVariableByName("wvp")->AsMatrix();
 		pWvp->SetMatrix(reinterpret_cast<float*>(&wvp));
@@ -572,8 +573,8 @@ namespace DirectXFramework
 		m_pImmediateContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 		// Set Shader and Draw
-		CalculateMatrixForBox(deltaTime);
-		CalculateMatrixForBox2(deltaTime);
+		//CalculateMatrixForBox(deltaTime);
+		//CalculateMatrixForBox2(deltaTime);
 
 		// Render (백버퍼를 프론트버퍼로 그린다.)
 		m_pSwapChain->Present(0, 0);
