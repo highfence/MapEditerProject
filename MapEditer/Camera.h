@@ -10,82 +10,86 @@
 
 #pragma once
 
-#include <DirectXMath.h>
-using namespace DirectX;
-
-class Camera
+namespace DirectXFramework
 {
-public:
-	Camera();
-	~Camera();
+#include <DirectXMath.h>
+	using namespace DirectX;
 
-	// Get/Set world camera position.
-	XMVECTOR GetPositionXM()const;
-	XMFLOAT3 GetPosition()const;
-	void SetPosition(float x, float y, float z);
-	void SetPosition(const XMFLOAT3& v);
+	class Camera
+	{
+	public:
+		Camera();
+		~Camera();
 
-	// Get camera basis vectors.
-	XMVECTOR GetRightXM()const;
-	XMFLOAT3 GetRight()const;
-	XMVECTOR GetUpXM()const;
-	XMFLOAT3 GetUp()const;
-	XMVECTOR GetLookXM()const;
-	XMFLOAT3 GetLook()const;
+		// Get/Set world camera position.
+		XMVECTOR GetPositionXM() const;
+		XMFLOAT3 GetPosition() const;
+		void SetPosition(float x, float y, float z);
+		void SetPosition(const XMFLOAT3& v);
 
-	// Get frustum properties.
-	float GetNearZ()const;
-	float GetFarZ()const;
-	float GetAspect()const;
-	float GetFovY()const;
-	float GetFovX()const;
+		// Get camera basis vectors.
+		XMVECTOR GetRightXM() const;
+		XMFLOAT3 GetRight() const;
+		XMVECTOR GetUpXM() const;
+		XMFLOAT3 GetUp() const;
+		XMVECTOR GetLookXM() const;
+		XMFLOAT3 GetLook() const;
 
-	// Get near and far plane dimensions in view space coordinates.
-	float GetNearWindowWidth()const;
-	float GetNearWindowHeight()const;
-	float GetFarWindowWidth()const;
-	float GetFarWindowHeight()const;
+		// Get frustum properties.
+		float GetNearZ() const;
+		float GetFarZ() const;
+		float GetAspect() const;
+		float GetFovY() const;
+		float GetFovX() const;
 
-	// Set frustum.
-	void SetLens(float fovY, float aspect, float zn, float zf);
+		// Get near and far plane dimensions in view space coordinates.
+		float GetNearWindowWidth() const;
+		float GetNearWindowHeight() const;
+		float GetFarWindowWidth() const;
+		float GetFarWindowHeight() const;
 
-	// Define camera space via LookAt parameters.
-	void LookAt(FXMVECTOR pos, FXMVECTOR target, FXMVECTOR worldUp);
-	void LookAt(const XMFLOAT3& pos, const XMFLOAT3& target, const XMFLOAT3& up);
+		// Set frustum.
+		void SetLens(float fovY, float aspect, float zn, float zf);
 
-	// Get View/Proj matrices.
-	XMMATRIX View()const;
-	XMMATRIX Proj()const;
-	XMMATRIX ViewProj()const;
+		// Define camera space via LookAt parameters.
+		void LookAt(FXMVECTOR pos, FXMVECTOR target, FXMVECTOR worldUp);
+		void LookAt(const XMFLOAT3& pos, const XMFLOAT3& target, const XMFLOAT3& up);
 
-	// Strafe/Walk the camera a distance d.
-	void Strafe(float d);
-	void Walk(float d);
+		// Get View/Proj matrices.
+		XMMATRIX GetView() const { return XMLoadFloat4x4(&m_View); };
+		XMMATRIX GetProj() const { return XMLoadFloat4x4(&m_Proj); };
+		XMMATRIX GetViewProj() const { return XMMatrixMultiply(GetView(), GetProj()); };
 
-	// Rotate the camera.
-	void Pitch(float angle);
-	void RotateY(float angle);
+		// Strafe/Walk the camera a distance d.
+		void Strafe(float d);
+		void Walk(float d);
 
-	// After modifying camera position/orientation, call to rebuild the view matrix.
-	void UpdateViewMatrix();
+		// Rotate the camera.
+		void Pitch(float angle);
+		void RotateY(float angle);
 
-private:
+		// After modifying camera position/orientation, call to rebuild the view matrix.
+		void UpdateViewMatrix();
 
-	// Camera coordinate system with coordinates relative to world space.
-	XMFLOAT3 m_Position;
-	XMFLOAT3 m_Right;
-	XMFLOAT3 m_Up;
-	XMFLOAT3 m_Look;
+	private:
 
-	// Cache frustum properties.
-	float m_NearZ;
-	float m_FarZ;
-	float m_Aspect;
-	float m_FovY;
-	float m_NearWindowHeight;
-	float m_FarWindowHeight;
+		// Camera coordinate system with coordinates relative to world space.
+		XMFLOAT3 m_Position;
+		XMFLOAT3 m_Right;
+		XMFLOAT3 m_Up;
+		XMFLOAT3 m_Look;
 
-	// Cache View/Proj matrices.
-	XMFLOAT4X4 m_View;
-	XMFLOAT4X4 m_Proj;
-};
+		// Cache frustum properties.
+		float m_NearZ;
+		float m_FarZ;
+		float m_Aspect;
+		float m_FovY;
+		float m_NearWindowHeight;
+		float m_FarWindowHeight;
+
+		// Cache View/Proj matrices.
+		XMFLOAT4X4 m_View;
+		XMFLOAT4X4 m_Proj;
+	};
+
+}

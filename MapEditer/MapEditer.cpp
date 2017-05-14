@@ -2,6 +2,7 @@
 #include "InputLayer.h"
 #include "Definition.h"
 #include "MyTimer.h"
+#include "Camera.h"
 #include "MapEditer.h"
 
 namespace DirectXFramework
@@ -394,6 +395,7 @@ namespace DirectXFramework
 
 	bool MapEditer::CalcProc(float deltaTime)
 	{
+		OnKeyboardInput(deltaTime);
 		return true;
 	}
 
@@ -482,6 +484,55 @@ namespace DirectXFramework
 		}
 	}
 
+	void MapEditer::OnKeyboardInput(float deltaTime)
+	{
+		const float moveSpeed = 10.0f;
+
+		if (GetAsyncKeyState('W') & HOLDKEY)
+			m_pCamera->Walk(moveSpeed * deltaTime);
+
+		if (GetAsyncKeyState('S') & HOLDKEY)
+			m_pCamera->Walk(-moveSpeed * deltaTime);
+
+		if (GetAsyncKeyState('A') & HOLDKEY)
+			m_pCamera->Strafe(-moveSpeed * deltaTime);
+
+		if (GetAsyncKeyState('D') & HOLDKEY)
+			m_pCamera->Strafe(moveSpeed * deltaTime);
+
+		m_pCamera->UpdateViewMatrix();
+	}
+
+	void MapEditer::OnMouseDown(WPARAM btnState, int x, int y)
+	{
+		m_LastMousePos.x = x;
+		m_LastMousePos.y = y;
+
+		SetCapture(m_hWnd);
+	}
+
+	void MapEditer::OnMouseUp(WPARAM btnState, int x, int y)
+	{
+		ReleaseCapture();
+	}
+
+	void MapEditer::OnMouseMove(WPARAM btnState, int x, int y)
+	{
+		if ((btnState & MK_LBUTTON) != 0)
+		{
+			// Make each pixel correspond to a quarter of a degree.
+			float dx = XMConvertToRadians(0.25f * static_cast<float>(x - m_LastMousePos.x));
+			float dy = XMConvertToRadians(0.25f * static_cast<float>(y - m_LastMousePos.y));
+
+			m_pCamera->Pitch(dy);
+			m_pCamera->RotateY(dx);
+		}
+
+		m_LastMousePos.x = x;
+		m_LastMousePos.y = y;
+	}
+
+
 	bool MapEditer::DrawProc(float deltaTime)
 	{
 		float clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
@@ -515,12 +566,14 @@ namespace DirectXFramework
 	void MapEditer::InitMatrix()
 	{
 		m_World = XMMatrixIdentity();
+		m_pCamera->SetPosition(0.0f, 0.0f, -8.0f);
+		m_pCamera->SetLens(XM_PIDIV2, 800.0f / (FLOAT)600.f, 0.3f, 1000.0f);
 
 		// View 행렬 구성
 		XMVECTOR pos = XMVectorSet(0.0f, 0.0f, -8.0f, 1.0f);
 		XMVECTOR target = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
 		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-		m_View = XMMatrixLookAtLH(pos, target, up);
+		m_View = m_pCamera->GetView();
 
 		m_Projection = XMMatrixPerspectiveFovLH(
 			XM_PIDIV2,  	// pi
@@ -568,23 +621,27 @@ namespace DirectXFramework
 	}
 
 	/*
-		내가 관심있는 메시지에 대해서 처리해주는 콜백 함수.
+		내가 관심있는 메시지에 대해서만 처리해주는 콜백 함수.
 	*/
 	LRESULT CALLBACK MapEditer::MessageHandler(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	{
 		switch (iMessage)
 		{
-		case WM_KEYDOWN:
-		{
-			m_pInputLayer->KeyDown((unsigned int)wParam);
+		case WM_LBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+			OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
-		}
 
-		case WM_KEYUP:
-		{
-			m_pInputLayer->KeyUp((unsigned int)lParam);
+		case WM_LBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_RBUTTONUP:
+			OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
-		}
+
+		case WM_MOUSEMOVE:
+			OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			return 0;
 
 		default:
 			return (DefWindowProc(hWnd, iMessage, wParam, lParam));
