@@ -31,7 +31,9 @@ namespace DirectXFramework
 
 	void Camera::SetPosition(float x, float y, float z)
 	{
-		m_Position = XMFLOAT3(x, y, z);
+		m_Position.x = x;
+		m_Position.y = y;
+		m_Position.z = z;
 	}
 
 	void Camera::SetPosition(const XMFLOAT3& v)

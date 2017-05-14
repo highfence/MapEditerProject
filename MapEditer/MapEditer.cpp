@@ -25,6 +25,8 @@ namespace DirectXFramework
 		m_pTimer = new MyTimer;
 		m_pTimer->Init();
 
+		m_pCamera = new Camera;
+
 		CreateShader();
 		CreateVertexBuffer();
 		CreateIndexBuffer();
@@ -555,7 +557,6 @@ namespace DirectXFramework
 
 		// Set Shader and Draw
 		CalculateMatrixForBox(deltaTime);
-
 		CalculateMatrixForBox2(deltaTime);
 
 		// Render (백버퍼를 프론트버퍼로 그린다.)
@@ -568,17 +569,10 @@ namespace DirectXFramework
 		m_World = XMMatrixIdentity();
 		m_pCamera->SetPosition(0.0f, 0.0f, -8.0f);
 		m_pCamera->SetLens(XM_PIDIV2, 800.0f / (FLOAT)600.f, 0.3f, 1000.0f);
+		m_pCamera->UpdateViewMatrix();
 
-		// View 행렬 구성
-		XMVECTOR pos = XMVectorSet(0.0f, 0.0f, -8.0f, 1.0f);
-		XMVECTOR target = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
-		XMVECTOR up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 		m_View = m_pCamera->GetView();
-
-		m_Projection = XMMatrixPerspectiveFovLH(
-			XM_PIDIV2,  	// pi
-			800.0f / (FLOAT)600.0f,  // aspect ratio
-			0.3f, 1000.0f);  	// near plane, far plane
+		m_Projection = m_pCamera->GetProj();
 	}
 
 	void MapEditer::CreateConstantBuffer()
