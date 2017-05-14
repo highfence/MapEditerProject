@@ -25,6 +25,7 @@ namespace DirectXFramework
 		bool CreateViewPort();
 		bool InitDirectX();
 		void InitMatrix();
+		void MakeInnerObjects();
 
 		bool CreateShader();
 		bool CreateVertexBuffer();

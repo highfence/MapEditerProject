@@ -19,13 +19,7 @@ namespace DirectXFramework
 		InitWindow();
 		InitDirectX();
 
-		m_pInputLayer = new InputLayer;
-		m_pInputLayer->Initialize();
-
-		m_pTimer = new MyTimer;
-		m_pTimer->Init();
-
-		m_pCamera = new Camera;
+		MakeInnerObjects();
 
 		CreateShader();
 		CreateVertexBuffer();
@@ -589,6 +583,17 @@ namespace DirectXFramework
 
 		m_View = m_pCamera->GetView();
 		m_Projection = m_pCamera->GetProj();
+	}
+
+	void MapEditer::MakeInnerObjects()
+	{
+		m_pInputLayer = new InputLayer;
+		m_pInputLayer->Initialize();
+
+		m_pTimer = new MyTimer;
+		m_pTimer->Init();
+
+		m_pCamera = new Camera;
 	}
 
 	void MapEditer::CreateConstantBuffer()
