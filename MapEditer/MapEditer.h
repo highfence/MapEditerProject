@@ -47,6 +47,8 @@ namespace DirectXFramework
 
 		bool CreateConstantBuffer();
 		bool LoadTexture();
+		bool BuildGeometryBuffers();
+		float GetHeight(float x, float z) const;
 
 		/* Window Variables */
 		HINSTANCE m_hInstance;
@@ -94,6 +96,7 @@ namespace DirectXFramework
 		MyTimer*    m_pTimer       = nullptr;
 		Camera*		m_pCamera      = nullptr;
 		POINT		m_LastMousePos;
+		uint32_t    m_GridIndexCount = 0;
 
 		XMFLOAT4 m_LightDirection = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
 		XMFLOAT4 m_LightColor     = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
