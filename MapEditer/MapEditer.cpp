@@ -20,12 +20,7 @@ namespace DirectXFramework
 		InitDirectX();
 
 		MakeInnerObjects();
-
-		CreateShader();
-		CreateVertexBuffer();
-		CreateIndexBuffer();
-		CreateConstantBuffer();
-		CreateRenderState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
+		DirectXSetting();
 
 		InitMatrix();
 		LoadTexture();
@@ -209,6 +204,17 @@ namespace DirectXFramework
 		if (!CreateViewPort()) return false;
 		if (!CreateDepthStencilTexture()) return false;
 
+		return true;
+	}
+
+	bool MapEditer::DirectXSetting()
+	{
+		bool retval = true;
+		retval = retval && CreateShader();
+		retval = retval && CreateVertexBuffer();
+		retval = retval && CreateIndexBuffer();
+		retval = retval && CreateConstantBuffer();
+		retval = retval && CreateRenderState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
 		return true;
 	}
 
@@ -596,15 +602,18 @@ namespace DirectXFramework
 		m_pCamera = new Camera;
 	}
 
-	void MapEditer::CreateConstantBuffer()
+	bool MapEditer::CreateConstantBuffer()
 	{
-		D3D11_BUFFER_DESC 	cbd;
+		D3D11_BUFFER_DESC cbd;
 		ZeroMemory(&cbd, sizeof(cbd));
 		cbd.Usage = D3D11_USAGE_DEFAULT;
 		cbd.ByteWidth = sizeof(ConstantBuffer);
 		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbd.CPUAccessFlags = 0;
-		m_pD3DDevice->CreateBuffer(&cbd, NULL, &m_pConstantBuffer);
+		auto hr = m_pD3DDevice->CreateBuffer(&cbd, NULL, &m_pConstantBuffer);
+
+		if (FAILED(hr)) return false;
+		return true;
 	}
 
 	bool MapEditer::LoadTexture()

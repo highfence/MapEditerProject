@@ -26,7 +26,8 @@ namespace DirectXFramework
 		bool InitDirectX();
 		void InitMatrix();
 		void MakeInnerObjects();
-
+		
+		bool DirectXSetting();
 		bool CreateShader();
 		bool CreateVertexBuffer();
 		bool CreateIndexBuffer();
@@ -44,7 +45,7 @@ namespace DirectXFramework
 
 		bool DrawProc(float deltaTime);
 
-		void CreateConstantBuffer();
+		bool CreateConstantBuffer();
 		bool LoadTexture();
 
 		/* Window Variables */
