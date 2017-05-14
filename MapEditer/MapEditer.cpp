@@ -398,6 +398,7 @@ namespace DirectXFramework
 	bool MapEditer::CalcProc(float deltaTime)
 	{
 		OnKeyboardInput(deltaTime);
+		CalculateMatrix();
 		return true;
 	}
 
@@ -486,21 +487,31 @@ namespace DirectXFramework
 		}
 	}
 
+	void MapEditer::CalculateMatrix()
+	{
+		m_View = m_pCamera->GetView();
+		m_Projection = m_pCamera->GetProj();
+	}
+
+	const float moveSpeed = 10.0f;
 	void MapEditer::OnKeyboardInput(float deltaTime)
 	{
-		const float moveSpeed = 10.0f;
-
-		if (GetAsyncKeyState('W') & HOLDKEY)
+		if (m_pInputLayer->IsKeyDown(VK_W))
+		{
 			m_pCamera->Walk(moveSpeed * deltaTime);
-
-		if (GetAsyncKeyState('S') & HOLDKEY)
+		}
+		if (m_pInputLayer->IsKeyDown(VK_S))
+		{
 			m_pCamera->Walk(-moveSpeed * deltaTime);
-
-		if (GetAsyncKeyState('A') & HOLDKEY)
+		}
+		if (m_pInputLayer->IsKeyDown(VK_A))
+		{
 			m_pCamera->Strafe(-moveSpeed * deltaTime);
-
-		if (GetAsyncKeyState('D') & HOLDKEY)
+		}
+		if (m_pInputLayer->IsKeyDown(VK_D))
+		{
 			m_pCamera->Strafe(moveSpeed * deltaTime);
+		}
 
 		m_pCamera->UpdateViewMatrix();
 	}
@@ -621,21 +632,27 @@ namespace DirectXFramework
 	{
 		switch (iMessage)
 		{
-		case WM_LBUTTONDOWN:
-		case WM_MBUTTONDOWN:
-		case WM_RBUTTONDOWN:
+		case WM_LBUTTONDOWN :
+		case WM_MBUTTONDOWN :
+		case WM_RBUTTONDOWN :
 			OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
 
-		case WM_LBUTTONUP:
-		case WM_MBUTTONUP:
-		case WM_RBUTTONUP:
+		case WM_LBUTTONUP :
+		case WM_MBUTTONUP :
+		case WM_RBUTTONUP :
 			OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
 
-		case WM_MOUSEMOVE:
+		case WM_MOUSEMOVE :
 			OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 			return 0;
+
+		case WM_KEYDOWN : 
+			m_pInputLayer->KeyDown(wParam);
+
+		case WM_KEYUP :
+			m_pInputLayer->KeyUp(wParam);
 
 		default:
 			return (DefWindowProc(hWnd, iMessage, wParam, lParam));
