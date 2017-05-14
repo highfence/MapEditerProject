@@ -175,6 +175,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="GeometryGenerator.cpp" />
     <ClCompile Include="InputLayer.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
@@ -209,6 +210,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Definition.h" />
+    <ClInclude Include="GeometryGenerator.h" />
     <ClInclude Include="InputLayer.h" />
     <ClInclude Include="KeyState.h" />
     <ClInclude Include="MapEditer.h" />

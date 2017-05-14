@@ -1,22 +1,75 @@
 #pragma once
 #include <DirectXMath.h>
 
-using namespace DirectX;
-
-struct  MyVertex
+namespace DirectXFramework
 {
-	XMFLOAT3 pos;
-	XMFLOAT4 color;
+	using namespace DirectX;
 
-	XMFLOAT3 normal;
-	XMFLOAT2 tex;
-};
+	struct  MyVertex
+	{
+		XMFLOAT3 pos;
+		XMFLOAT4 color;
 
-struct ConstantBuffer
-{
-	XMMATRIX wvp;
-	XMMATRIX world;
+		XMFLOAT3 normal;
+		XMFLOAT2 tex;
+	};
 
-	XMFLOAT4 lightDir;
-	XMFLOAT4 lightColor;
-};
+	struct ConstantBuffer
+	{
+		XMMATRIX wvp;
+		XMMATRIX world;
+
+		XMFLOAT4 lightDir;
+		XMFLOAT4 lightColor;
+	};
+
+	struct Vertex
+	{
+		Vertex() {};
+		Vertex(
+			const XMFLOAT3& p,
+			const XMFLOAT3& n,
+			const XMFLOAT3& t,
+			const XMFLOAT2& uv) :
+			Position(p),
+			Normal(n),
+			TangentU(t),
+			TexC(uv) {};
+
+		Vertex(
+			float px, float py, float pz,
+			float nx, float ny, float nz,
+			float tx, float ty, float tz,
+			float u, float v) :
+			Position(px, py, pz),
+			Normal(nx, ny, nz),
+			TangentU(tx, ty, tz),
+			TexC(u, v) {};
+
+		XMFLOAT3 Position;
+		XMFLOAT3 Normal;
+		XMFLOAT3 TangentU;
+		XMFLOAT2 TexC;
+	};
+
+	struct MeshData
+	{
+		std::vector<Vertex> Vertices;
+		std::vector<uint32_t> Indices32;
+
+		std::vector<uint16_t>& GetIndices16()
+		{
+			if (m_Indices16.empty())
+			{
+				m_Indices16.resize(Indices32.size());
+				for (size_t i = 0; i < Indices32.size(); ++i)
+				{
+					m_Indices16[i] = static_cast<uint16_t>(Indices32[i]);
+				}
+			}
+		}
+
+	private:
+		std::vector<uint16_t> m_Indices16;
+	};
+}

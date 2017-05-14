@@ -169,9 +169,11 @@ namespace DirectXFramework
 
 		if (FAILED(hr)) return false;
 
-		hr = m_pD3DDevice->CreateRenderTargetView(pBackBuffer,
+		hr = m_pD3DDevice->CreateRenderTargetView(
+			pBackBuffer,
 			NULL,
 			&m_pRenderTargetView);
+
 		pBackBuffer->Release();
 
 		if (FAILED(hr)) return false;
@@ -252,7 +254,7 @@ namespace DirectXFramework
 		D3DX11_PASS_DESC passDesc;
 		pTech->GetPassByIndex(0)->GetDesc(&passDesc);
 
-		UINT   numElements = ARRAYSIZE(layout);
+		UINT numElements = ARRAYSIZE(layout);
 		hr = m_pD3DDevice->CreateInputLayout(
 			layout,
 			numElements,
@@ -293,14 +295,14 @@ namespace DirectXFramework
 			{ XMFLOAT3(-1.0f, -1.0f, 1.0f),  XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f), XMFLOAT3(-0.33f, -0.33f, 0.33f) , XMFLOAT2(0.0f, 1.0f) },
 		};
 
-		D3D11_BUFFER_DESC    bd;
+		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 		bd.ByteWidth = sizeof(vertices);
 		bd.Usage = D3D11_USAGE_DEFAULT;
 		bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		bd.CPUAccessFlags = 0;
 
-		D3D11_SUBRESOURCE_DATA    initData;
+		D3D11_SUBRESOURCE_DATA initData;
 		ZeroMemory(&initData, sizeof(initData));
 		initData.pSysMem = vertices;
 		m_pD3DDevice->CreateBuffer(
@@ -313,7 +315,7 @@ namespace DirectXFramework
 
 	bool MapEditer::CreateIndexBuffer()
 	{
-		UINT     indices[] =
+		UINT indices[] =
 		{
 			3, 1, 0,
 			2, 1, 3,
@@ -329,14 +331,14 @@ namespace DirectXFramework
 			7, 4, 6,
 		};
 
-		D3D11_BUFFER_DESC 	ibd;
+		D3D11_BUFFER_DESC ibd;
 		ZeroMemory(&ibd, sizeof(ibd));
 		ibd.ByteWidth = sizeof(indices);       // sizeof(UINT) * 6;
 		ibd.Usage = D3D11_USAGE_IMMUTABLE;
 		ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		ibd.CPUAccessFlags = 0;
 
-		D3D11_SUBRESOURCE_DATA 		iinitData;
+		D3D11_SUBRESOURCE_DATA iinitData;
 		ZeroMemory(&iinitData, sizeof(iinitData));
 		iinitData.pSysMem = indices;
 		m_pD3DDevice->CreateBuffer(&ibd, &iinitData, &m_pIndexBuffer);
@@ -364,7 +366,7 @@ namespace DirectXFramework
 		if (FAILED(hr)) return false;
 
 		// Create the depth stencil view
-		D3D11_DEPTH_STENCIL_VIEW_DESC 	descDSV;
+		D3D11_DEPTH_STENCIL_VIEW_DESC descDSV;
 		ZeroMemory(&descDSV, sizeof(descDSV));
 		descDSV.Format = descDepth.Format; // == DXGI_FORMAT_D24_UNORM_S8_UINT
 		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
@@ -383,7 +385,7 @@ namespace DirectXFramework
 
 	bool MapEditer::CreateRenderState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode)
 	{
-		D3D11_RASTERIZER_DESC      rasterizerDesc;
+		D3D11_RASTERIZER_DESC rasterizerDesc;
 		ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));
 		rasterizerDesc.FillMode = fillMode;		// Fill 옵션
 		rasterizerDesc.CullMode = cullMode;	// Culling 옵션
@@ -411,7 +413,7 @@ namespace DirectXFramework
 		// 박스를 회전시키기 위한 연산. 위치, 크기를 변경하고자 한다면 SRT를 기억할 것.
 		XMMATRIX mat = XMMatrixRotationY(accTime);
 		mat *= XMMatrixRotationX(-accTime);
-		m_World = mat;                     // 여기서 g_world는 박스에 대한 Matrix임.
+		m_World = mat; // 여기서 g_world는 박스에 대한 Matrix임.
 
 		XMMATRIX wvp = m_World * m_View * m_Projection;
 
@@ -500,22 +502,18 @@ namespace DirectXFramework
 		if (m_pInputLayer->IsKeyDown(VK_W))
 		{
 			m_pCamera->Walk(CameraMoveSpeed * deltaTime);
-			OutputDebugString(L"Key \'W\' Pushed\n");
 		}
 		if (m_pInputLayer->IsKeyDown(VK_S))
 		{
 			m_pCamera->Walk(-CameraMoveSpeed * deltaTime);
-			OutputDebugString(L"Key \'S\' Pushed\n");
 		}
 		if (m_pInputLayer->IsKeyDown(VK_A))
 		{
 			m_pCamera->Strafe(-CameraMoveSpeed * deltaTime);
-			OutputDebugString(L"Key \'A\' Pushed\n");
 		}
 		if (m_pInputLayer->IsKeyDown(VK_D))
 		{
 			m_pCamera->Strafe(CameraMoveSpeed * deltaTime);
-			OutputDebugString(L"Key \'D\' Pushed\n");
 		}
 
 		m_pCamera->UpdateViewMatrix();

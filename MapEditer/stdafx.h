@@ -3,6 +3,7 @@
 /* Unchangeable Headers */
 #include <Windows.h>
 #include <windowsx.h>
+#include <vector>
 
 #include <dxgi.h>
 #include <d3d11.h>
