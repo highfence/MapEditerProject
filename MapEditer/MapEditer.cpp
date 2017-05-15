@@ -222,7 +222,7 @@ namespace DirectXFramework
 		//retval = retval && CreateIndexBuffer();
 		retval = retval && CreateConstantBuffer();
 		retval = retval && CreateRenderState(
-			D3D11_FILL_SOLID,
+			D3D11_FILL_WIREFRAME,
 			D3D11_CULL_BACK);
 		return true;
 	}
@@ -702,7 +702,7 @@ namespace DirectXFramework
 		MeshData grid;
 		GeometryGenerator geoGen;
 
-		geoGen.CreateGrid(160.0f, 160.0f, 50, 50, grid);
+		geoGen.CreateGrid(560.0f, 560.0f, 150, 150, grid);
 		m_GridIndexCount = grid.Indices32.size();
 
 		std::vector<MyVertex> vertices(grid.Vertices.size());
@@ -778,7 +778,7 @@ namespace DirectXFramework
 
 	float MapEditer::GetHeight(float x, float z) const
 	{
-		return 0.3f * (z * sinf(0.1f * x) + x * cosf(0.1f * z));
+		return 0.3f * (z * sinf(0.05f * x) + x * cosf(0.02f * z));
 	}
 
 	/*
