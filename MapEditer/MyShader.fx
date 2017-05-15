@@ -52,5 +52,5 @@ float4 PS(VertexOut vOut) : SV_TARGET
 	float4 texColor = texDiffuse.Sample(samLinear, vOut.tex) * finalColor;
 	finalColor.a = 1.0f;
 
-	return texColor;
+	return vOut.color;
 }
