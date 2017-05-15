@@ -75,6 +75,8 @@ namespace DirectXFramework
 
 		if (m_pDepthStencilView) m_pDepthStencilView->Release();
 		if (m_pConstantBuffer)   m_pConstantBuffer->Release();
+		if (m_pHeightMapIndexBuffer) m_pHeightMapIndexBuffer->Release();
+		if (m_pHeightMapVertexBuffer) m_pHeightMapVertexBuffer->Release();
 		if (m_pIndexBuffer)      m_pIndexBuffer->Release();
 
 		if (m_pVertexBuffer)     m_pVertexBuffer->Release();
@@ -214,32 +216,33 @@ namespace DirectXFramework
 	bool MapEditer::DirectXSetting()
 	{
 		bool retval = true;
-		retval = retval && CreateShader();
 		retval = retval && BuildGeometryBuffers();
+		retval = retval && CreateShader();
 		//retval = retval && CreateVertexBuffer();
 		//retval = retval && CreateIndexBuffer();
 		retval = retval && CreateConstantBuffer();
-		retval = retval && CreateRenderState(D3D11_FILL_SOLID, D3D11_CULL_BACK);
+		retval = retval && CreateRenderState(
+			D3D11_FILL_SOLID,
+			D3D11_CULL_BACK);
 		return true;
 	}
 
 	bool MapEditer::CreateShader()
 	{
 		ID3DBlob * pErrorBlob = nullptr;
-		ID3DBlob * pCompileBlob = nullptr;
+		ID3DBlob * pVSBlob = nullptr;
 		auto hr = D3DX11CompileFromFile(
-			L"MyShader.fx", 0, 0, 0,
-			"fx_5_0", 0, 0, 0,
-			&pCompileBlob, &pErrorBlob, 0);
+			L"MyShader.fx", 0, 0,
+			"VS", "vs_5_0", 0, 0, 0,
+			&pVSBlob, &pErrorBlob, 0);
 
 		if (FAILED(hr)) return false;
 
-		hr = D3DX11CreateEffectFromMemory(
-			pCompileBlob->GetBufferPointer(),
-			pCompileBlob->GetBufferSize(),
+		hr = m_pD3DDevice->CreateVertexShader(
+			pVSBlob->GetBufferPointer(),
+			pVSBlob->GetBufferSize(),
 			0,
-			m_pD3DDevice,
-			&m_pFX);
+			&m_pVertexShader);
 
 		if (FAILED(hr)) return false;
 
@@ -251,18 +254,12 @@ namespace DirectXFramework
 			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		};
 
-		ID3DX11EffectTechnique* pTech = nullptr;
-		pTech = m_pFX->GetTechniqueByName("NormalTech");
-
-		D3DX11_PASS_DESC passDesc;
-		pTech->GetPassByIndex(0)->GetDesc(&passDesc);
-
 		UINT numElements = ARRAYSIZE(layout);
 		hr = m_pD3DDevice->CreateInputLayout(
 			layout,
 			numElements,
-			passDesc.pIAInputSignature,
-			passDesc.IAInputSignatureSize,
+			pVSBlob->GetBufferPointer(),
+			pVSBlob->GetBufferSize(),
 			&m_pVertexLayout);
 
 		if (FAILED(hr)) return false;
@@ -377,11 +374,17 @@ namespace DirectXFramework
 		// MSAA를 사용한다면 D3D11_DSV_DIMENSION_TEXTURE2DMS를 써야함
 		descDSV.Texture2D.MipSlice = 0;
 		descDSV.Flags = 0;
-		hr = m_pD3DDevice->CreateDepthStencilView(m_pDepthStencil, &descDSV, &m_pDepthStencilView);
+		hr = m_pD3DDevice->CreateDepthStencilView(
+			m_pDepthStencil,
+			&descDSV,
+			&m_pDepthStencilView);
 
 		if (FAILED(hr)) return false;
 
-		m_pImmediateContext->OMSetRenderTargets(1, &m_pRenderTargetView, m_pDepthStencilView);
+		m_pImmediateContext->OMSetRenderTargets(
+			1,
+			&m_pRenderTargetView,
+			m_pDepthStencilView);
 
 		return true;
 	}
@@ -394,7 +397,9 @@ namespace DirectXFramework
 		rasterizerDesc.CullMode = cullMode;	// Culling 옵션
 		rasterizerDesc.FrontCounterClockwise = false;	  // 앞/뒷면 로직 선택 CCW
 														  // 반시계 방향을 앞면으로 할 것인가?
-		auto hr = m_pD3DDevice->CreateRasterizerState(&rasterizerDesc, &m_pSolidRS);
+		auto hr = m_pD3DDevice->CreateRasterizerState(
+			&rasterizerDesc,
+			&m_pSolidRS);
 
 		if (FAILED(hr)) return false;
 		return true;
@@ -420,36 +425,46 @@ namespace DirectXFramework
 
 		XMMATRIX wvp = m_World * m_View * m_Projection;
 
-		ID3DX11EffectMatrixVariable* pWvp = m_pFX->GetVariableByName("wvp")->AsMatrix();
-		pWvp->SetMatrix((float*)(&wvp));
+		ConstantBuffer cb;
+		cb.wvp = XMMatrixTranspose(wvp);
+		cb.world = XMMatrixTranspose(m_World);
+		cb.lightDir = m_LightDirection;
+		cb.lightColor = m_LightColor;
 
-		ID3DX11EffectMatrixVariable* pWorld = m_pFX->GetConstantBufferByName("world")->AsMatrix();
-		pWorld->SetMatrix((float*)(&m_World));
+		m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
+		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);// set conatant buffer.
+		m_pImmediateContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 
-		ID3DX11EffectVectorVariable* pLightDir = m_pFX->GetConstantBufferByName("lightDir")->AsVector();
-		pLightDir->SetFloatVector((float*)&m_LightDirection);
+		//ID3DX11EffectMatrixVariable* pWvp = m_pFX->GetVariableByName("wvp")->AsMatrix();
+		//pWvp->SetMatrix((float*)(&wvp));
 
-		ID3DX11EffectVectorVariable* pLightColor = m_pFX->GetVariableByName("lightColor")->AsVector();
-		pLightColor->SetFloatVector((float*)&m_LightColor);
+		//ID3DX11EffectMatrixVariable* pWorld = m_pFX->GetConstantBufferByName("world")->AsMatrix();
+		//pWorld->SetMatrix((float*)(&m_World));
 
-		// Set Texture
-		ID3DX11EffectShaderResourceVariable* pDiffuseMap = nullptr;
-		pDiffuseMap = m_pFX->GetVariableByName("texDiffuse")->AsShaderResource();
-		pDiffuseMap->SetResource(m_pTextureRV);
+		//ID3DX11EffectVectorVariable* pLightDir = m_pFX->GetConstantBufferByName("lightDir")->AsVector();
+		//pLightDir->SetFloatVector((float*)&m_LightDirection);
 
-		// 사용할 Technique
-		ID3DX11EffectTechnique* tech = nullptr;
-		tech = m_pFX->GetTechniqueByName("NormalTech");
+		//ID3DX11EffectVectorVariable* pLightColor = m_pFX->GetVariableByName("lightColor")->AsVector();
+		//pLightColor->SetFloatVector((float*)&m_LightColor);
 
-		// Rendering
-		D3DX11_TECHNIQUE_DESC techDesc;
-		tech->GetDesc(&techDesc);
-		for (UINT p = 0; p < techDesc.Passes; ++p)
-		{
-			tech->GetPassByIndex(p)->Apply(0, m_pImmediateContext); // p 값은 Pass 
+		//// Set Texture
+		//ID3DX11EffectShaderResourceVariable* pDiffuseMap = nullptr;
+		//pDiffuseMap = m_pFX->GetVariableByName("texDiffuse")->AsShaderResource();
+		//pDiffuseMap->SetResource(m_pTextureRV);
 
-			m_pImmediateContext->DrawIndexed(36, 0, 0);
-		}
+		//// 사용할 Technique
+		//ID3DX11EffectTechnique* tech = nullptr;
+		//tech = m_pFX->GetTechniqueByName("NormalTech");
+
+		//// Rendering
+		//D3DX11_TECHNIQUE_DESC techDesc;
+		//tech->GetDesc(&techDesc);
+		//for (UINT p = 0; p < techDesc.Passes; ++p)
+		//{
+		//	tech->GetPassByIndex(p)->Apply(0, m_pImmediateContext); // p 값은 Pass 
+
+		//	m_pImmediateContext->DrawIndexed(36, 0, 0);
+		//}
 	}
 
 	void MapEditer::CalculateMatrixForBox2(float deltaTime)
@@ -491,6 +506,24 @@ namespace DirectXFramework
 
 			m_pImmediateContext->DrawIndexed(36, 0, 0);
 		}
+	}
+
+	void MapEditer::CalculateMatrixForHeightMap(float deltaTime)
+	{
+		XMMATRIX mat = XMMatrixRotationY(0.0f);
+		m_World = mat;
+
+		XMMATRIX wvp = m_World * m_View * m_Projection;
+
+		ConstantBuffer cb;
+		cb.wvp = XMMatrixTranspose(wvp);
+		cb.world = XMMatrixTranspose(m_World);
+		cb.lightDir = m_LightDirection;
+		cb.lightColor = m_LightColor;
+
+		m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
+		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);// set constant buffer.
+		m_pImmediateContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
 	}
 
 	void MapEditer::CalculateMatrix()
@@ -555,8 +588,16 @@ namespace DirectXFramework
 	bool MapEditer::DrawProc(float deltaTime)
 	{
 		float clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+		m_pImmediateContext->VSSetShader(m_pVertexShader, NULL, 0);
+		m_pImmediateContext->PSSetShader(m_pPixelShader, NULL, 0);
 
-		m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, clearColor);
+		m_pImmediateContext->PSSetShaderResources(0, 1, &m_pTextureRV);
+		m_pImmediateContext->PSSetSamplers(0, 1, &m_pSamplerLinear);
+
+		m_pImmediateContext->RSSetState(m_pSolidRS);
+		m_pImmediateContext->ClearRenderTargetView(
+			m_pRenderTargetView,
+			clearColor);
 		m_pImmediateContext->ClearDepthStencilView(
 			m_pDepthStencilView,
 			D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
@@ -569,12 +610,23 @@ namespace DirectXFramework
 
 		UINT stride = sizeof(MyVertex);
 		UINT offset = 0;
-		m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pVertexBuffer, &stride, &offset);
-		m_pImmediateContext->IASetIndexBuffer(m_pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+		m_pImmediateContext->IASetVertexBuffers(
+			0,
+			1,
+			&m_pHeightMapVertexBuffer,
+			&stride,
+			&offset);
 
-		// Set Shader and Draw
+		m_pImmediateContext->IASetIndexBuffer(
+			m_pHeightMapIndexBuffer,
+			DXGI_FORMAT_R32_UINT,
+			0);
+
 		//CalculateMatrixForBox(deltaTime);
-		//CalculateMatrixForBox2(deltaTime);
+		//m_pImmediateContext->DrawIndexed(36, 0, 0);
+
+		CalculateMatrixForHeightMap(deltaTime);
+		m_pImmediateContext->DrawIndexed(m_GridIndexCount, 0, 0);
 
 		// Render (백버퍼를 프론트버퍼로 그린다.)
 		m_pSwapChain->Present(0, 0);
@@ -685,28 +737,43 @@ namespace DirectXFramework
 		}
 
 		D3D11_BUFFER_DESC vbd;
+		ZeroMemory(&vbd, sizeof(vbd));
 		vbd.Usage = D3D11_USAGE_IMMUTABLE;
-		vbd.ByteWidth = sizeof(Vertex) * grid.Vertices.size();
+		vbd.ByteWidth = sizeof(MyVertex) * grid.Vertices.size();
+		vbd.Usage = D3D11_USAGE_DEFAULT;
 		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vbd.CPUAccessFlags = 0;
 		vbd.MiscFlags = 0;
 
 		D3D11_SUBRESOURCE_DATA vinitData;
+		ZeroMemory(&vinitData, sizeof(vinitData));
 		vinitData.pSysMem = &vertices[0];
-		auto hr = m_pD3DDevice->CreateBuffer(&vbd, &vinitData, &m_pVertexBuffer);
+		auto hr = m_pD3DDevice->CreateBuffer(
+			&vbd,
+			&vinitData,
+			&m_pHeightMapVertexBuffer);
 
 		if (FAILED(hr)) return false;
 
 		D3D11_BUFFER_DESC ibd;
-		ibd.Usage = D3D11_USAGE_IMMUTABLE;
+		ZeroMemory(&ibd, sizeof(ibd));
 		ibd.ByteWidth = sizeof(UINT) * m_GridIndexCount;
+		ibd.Usage = D3D11_USAGE_DEFAULT;
 		ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		ibd.CPUAccessFlags = 0;
 		ibd.MiscFlags = 0;
 
 		D3D11_SUBRESOURCE_DATA iinitData;
+		ZeroMemory(&iinitData, sizeof(iinitData));
 		iinitData.pSysMem = &grid.Indices32[0];
-		hr = m_pD3DDevice->CreateBuffer(&ibd, &iinitData, &m_pIndexBuffer);
+		hr = m_pD3DDevice->CreateBuffer(
+			&ibd,
+			&iinitData,
+			&m_pHeightMapIndexBuffer);
+
+		if (FAILED(hr)) return false;
+
+		return true;
 	}
 
 	float MapEditer::GetHeight(float x, float z) const

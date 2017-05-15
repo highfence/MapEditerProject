@@ -37,6 +37,7 @@ namespace DirectXFramework
 		bool CalcProc(float deltaTime);
 		void CalculateMatrixForBox(float deltaTime);
 		void CalculateMatrixForBox2(float deltaTime);
+		void CalculateMatrixForHeightMap(float deltaTime);
 		void CalculateMatrix();
 		void OnKeyboardInput(float deltaTime);
 		void OnMouseDown(WPARAM btnState, int x, int y);
@@ -82,6 +83,8 @@ namespace DirectXFramework
 		ID3D11SamplerState*		  m_pSamplerLinear	  = nullptr;
 
 		ID3DX11Effect*			  m_pFX				  = nullptr;
+		ID3D11Buffer*			  m_pHeightMapVertexBuffer = nullptr;
+		ID3D11Buffer*			  m_pHeightMapIndexBuffer = nullptr;
 
 		/* Space Matrix */
 		XMMATRIX    m_World;
