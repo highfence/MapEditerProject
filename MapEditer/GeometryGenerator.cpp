@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Definition.h"
+#include "xnaCollision.h"
 #include "GeometryGenerator.h"
 
 namespace DirectXFramework
@@ -31,10 +32,10 @@ namespace DirectXFramework
 			{
 				float x = -halfWidth + j * dx;
 
-				meshData.Vertices[i * n + j].Position = XMFLOAT3(x, 0.0f, z);
+				meshData.Vertices[i * n + j].Position = DirectX::XMFLOAT3(x, 0.0f, z);
 
-				meshData.Vertices[i * n + j].Normal = XMFLOAT3(0.0f, 1.0f, 0.0f);
-				meshData.Vertices[i * n + j].TangentU = XMFLOAT3(1.0f, 0.0f, 0.0f);
+				meshData.Vertices[i * n + j].Normal = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+				meshData.Vertices[i * n + j].TangentU = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
 
 				meshData.Vertices[i * n + j].TexC.x = j * du;
 				meshData.Vertices[i * n + j].TexC.y = i * dv;
@@ -58,6 +59,8 @@ namespace DirectXFramework
 				k += 6;
 			}
 		}
+
+		// TODO :: 피킹을 어떻게 해야할까?
 
 		return meshData;
 	}

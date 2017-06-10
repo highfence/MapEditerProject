@@ -57,8 +57,11 @@ namespace DirectXFramework
 
 		// Get View/Proj matrices.
 		XMMATRIX GetView() const { return XMLoadFloat4x4(&m_View); };
+		XMFLOAT4X4 GetView4x4f() const { return m_View; };
 		XMMATRIX GetProj() const { return XMLoadFloat4x4(&m_Proj); };
+		XMFLOAT4X4 GetProj4x4f() const { return m_Proj; };
 		XMMATRIX GetViewProj() const { return XMMatrixMultiply(GetView(), GetProj()); };
+		
 
 		// Strafe/Walk the camera a distance d.
 		void Strafe(float d);
@@ -93,7 +96,7 @@ namespace DirectXFramework
 		XMFLOAT4X4 m_View;
 		XMFLOAT4X4 m_Proj;
 
-		float m_MoveSpeed = 1.0f;
+		float m_MoveSpeed = 0.2f;
 	};
 
 }

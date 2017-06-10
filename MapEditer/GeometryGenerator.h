@@ -9,7 +9,8 @@ namespace DirectXFramework
 		~GeometryGenerator() = default;
 
 		MeshData CreateGrid(float width, float depth, UINT m, UINT n, MeshData& meshData);
+
 	private :
-		
+
 	};
 }

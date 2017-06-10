@@ -39,6 +39,8 @@ namespace DirectXFramework
 		void CalculateMatrixForBox2(float deltaTime);
 		void CalculateMatrixForHeightMap(float deltaTime);
 		void CalculateMatrix();
+
+		/* Input Processing Functions */
 		void OnKeyboardInput(float deltaTime);
 		void OnMouseDown(WPARAM btnState, int x, int y);
 		void OnMouseUp(WPARAM btnState, int x, int y);
@@ -50,6 +52,8 @@ namespace DirectXFramework
 		bool LoadTexture();
 		bool BuildGeometryBuffers();
 		float GetHeight(float x, float z) const;
+
+		void Pick(int sx, int sy);
 
 		/* Window Variables */
 		HINSTANCE m_hInstance;
@@ -85,6 +89,7 @@ namespace DirectXFramework
 		ID3DX11Effect*			  m_pFX				  = nullptr;
 		ID3D11Buffer*			  m_pHeightMapVertexBuffer = nullptr;
 		ID3D11Buffer*			  m_pHeightMapIndexBuffer = nullptr;
+		MeshData*				  m_MeshData		  = nullptr;
 
 		/* Space Matrix */
 		XMMATRIX    m_World;
@@ -101,8 +106,10 @@ namespace DirectXFramework
 		POINT		m_LastMousePos;
 		uint32_t    m_GridIndexCount = 0;
 
+		/* Picking */
 		XMFLOAT4 m_LightDirection = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
 		XMFLOAT4 m_LightColor     = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
+		UINT	 m_PickedTriangle = -1;
 
 	};
 

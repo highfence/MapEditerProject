@@ -1,4 +1,7 @@
+#define _XM_NO_INTRINSICS_
 #include "stdafx.h"
+#include <DirectXMath.h>
+#include <DirectXCollision.h>
 #include "InputLayer.h"
 #include "Definition.h"
 #include "MyTimer.h"
@@ -222,7 +225,7 @@ namespace DirectXFramework
 		//retval = retval && CreateIndexBuffer();
 		retval = retval && CreateConstantBuffer();
 		retval = retval && CreateRenderState(
-			D3D11_FILL_WIREFRAME,
+			D3D11_FILL_SOLID,
 			D3D11_CULL_BACK);
 		return true;
 	}
@@ -557,10 +560,19 @@ namespace DirectXFramework
 
 	void MapEditer::OnMouseDown(WPARAM btnState, int x, int y)
 	{
-		m_LastMousePos.x = x;
-		m_LastMousePos.y = y;
+		// 왼쪽 버튼 클릭시 처리.
+		if ((btnState & MK_LBUTTON) != 0)
+		{
+			m_LastMousePos.x = x;
+			m_LastMousePos.y = y;
 
-		SetCapture(m_hWnd);
+			SetCapture(m_hWnd);
+		}
+		// 오른쪽 버튼 클릭시 처리.
+		else if ((btnState & MK_RBUTTON) != 0)
+		{
+			Pick(x, y);
+		}
 	}
 
 	void MapEditer::OnMouseUp(WPARAM btnState, int x, int y)
@@ -583,7 +595,6 @@ namespace DirectXFramework
 		m_LastMousePos.x = x;
 		m_LastMousePos.y = y;
 	}
-
 
 	bool MapEditer::DrawProc(float deltaTime)
 	{
@@ -637,7 +648,7 @@ namespace DirectXFramework
 	{
 		m_World = XMMatrixIdentity();
 		m_pCamera->SetPosition(0.0f, 0.0f, -8.0f);
-		m_pCamera->SetLens(XM_PIDIV2, 800.0f / (FLOAT)600.f, 0.3f, 1000.0f);
+		m_pCamera->SetLens(XM_PIDIV2, m_Width / (FLOAT)m_Height, 0.3f, 1000.0f);
 		m_pCamera->UpdateViewMatrix();
 
 		m_View = m_pCamera->GetView();
@@ -699,16 +710,22 @@ namespace DirectXFramework
 
 	bool MapEditer::BuildGeometryBuffers()
 	{
-		MeshData grid;
+		if (m_MeshData != nullptr)
+		{
+			delete m_MeshData;
+			m_MeshData = nullptr;
+		}
+		m_MeshData = new MeshData();
+
 		GeometryGenerator geoGen;
 
-		geoGen.CreateGrid(560.0f, 560.0f, 150, 150, grid);
-		m_GridIndexCount = grid.Indices32.size();
+		geoGen.CreateGrid(150.0f, 150.0f, 2, 2, *m_MeshData);
+		m_GridIndexCount = m_MeshData->Indices32.size();
 
-		std::vector<MyVertex> vertices(grid.Vertices.size());
-		for (size_t i = 0; i < grid.Vertices.size(); ++i)
+		std::vector<MyVertex> vertices(m_MeshData->Vertices.size());
+		for (size_t i = 0; i < m_MeshData->Vertices.size(); ++i)
 		{
-			XMFLOAT3 p = grid.Vertices[i].Position;
+			XMFLOAT3 p = m_MeshData->Vertices[i].Position;
 
 			p.y = GetHeight(p.x, p.z);
 
@@ -739,7 +756,7 @@ namespace DirectXFramework
 		D3D11_BUFFER_DESC vbd;
 		ZeroMemory(&vbd, sizeof(vbd));
 		vbd.Usage = D3D11_USAGE_IMMUTABLE;
-		vbd.ByteWidth = sizeof(MyVertex) * grid.Vertices.size();
+		vbd.ByteWidth = sizeof(MyVertex) * m_MeshData->Vertices.size();
 		vbd.Usage = D3D11_USAGE_DEFAULT;
 		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vbd.CPUAccessFlags = 0;
@@ -765,7 +782,7 @@ namespace DirectXFramework
 
 		D3D11_SUBRESOURCE_DATA iinitData;
 		ZeroMemory(&iinitData, sizeof(iinitData));
-		iinitData.pSysMem = &grid.Indices32[0];
+		iinitData.pSysMem = &m_MeshData->Indices32[0];
 		hr = m_pD3DDevice->CreateBuffer(
 			&ibd,
 			&iinitData,
@@ -781,27 +798,108 @@ namespace DirectXFramework
 		return 0.3f * (z * sinf(0.05f * x) + x * cosf(0.02f * z));
 	}
 
+	void MapEditer::Pick(int sx, int sy)
+	{
+		// 메쉬 데이터가 아직 만들어지지 않은 상태라면, 에러로 판단.
+		if (m_MeshData == nullptr) return;
+
+		// 시야 공간에서의 피킹 반직선 계산.
+		XMFLOAT4X4 P = m_pCamera->GetProj4x4f();
+
+		float vx = (+2.0f * sx / m_Width - 1.0f) / P(0, 0);
+		float vy = (-2.0f * sy / m_Height + 1.0f) / P(1, 1);
+
+		// 반직선 정보 정의 (Origin은 시야공간에서 원점이다)
+		XMVECTOR rayOrigin = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
+		XMVECTOR rayDir = XMVectorSet(vx, vy, 1.0f, 0.0f);
+
+		// 시야 공간에서 월드 공간으로 전환하는 행렬 구하기.
+		XMMATRIX V = m_pCamera->GetView();
+		XMMATRIX invView = XMMatrixInverse(&XMMatrixDeterminant(V), V);
+
+		// 월드 공간에서 Mesh 공간으로 전환하는 행렬 구하기. 
+		// (현재상태에서는 Identity Matrix이므로 별로 의미는 없음)
+		XMMATRIX W = m_World;
+		XMMATRIX invWorld = XMMatrixInverse(&XMMatrixDeterminant(W), W);
+
+		// 시야 공간에서 Mesh의 로컬 공간으로 가는 행렬 정의
+		XMMATRIX toLocal = XMMatrixMultiply(invView, invWorld);
+
+		// 반직선 정보 갱신 (Coord는 점으로 처리, Normal은 벡터 처리)
+		rayOrigin = XMVector3TransformCoord(rayOrigin, toLocal);
+		rayDir = XMVector3TransformNormal(rayDir, toLocal);
+
+		// 교차 판정을 위해 ray를 정규화.
+		rayDir = XMVector3Normalize(rayDir);
+
+		/* 교차 판정 시작. */
+		// 선택 삼각형을 -1로 초기화한다.
+		m_PickedTriangle = -1;
+		float tmin = 0.0f;
+
+		auto meshIndices = m_MeshData->Indices32;
+		auto meshVertices = m_MeshData->Vertices;
+		// 이 삼각형의 index를 쭉 찾아가면서 교차했는지 판정.
+		for (UINT i = 0; i < meshIndices.size() / 3; ++i)
+		{
+			// 삼각형을 구축하는 인덱스.
+			UINT i0 = meshIndices[i*3 + 0];
+			UINT i1 = meshIndices[i*3 + 1];
+			UINT i2 = meshIndices[i*3 + 2];
+
+			// 인덱스에 따라 찾은 정점 정보.
+			XMVECTOR v0 = XMLoadFloat3(&meshVertices[i0].Position);
+			XMVECTOR v1 = XMLoadFloat3(&meshVertices[i1].Position);
+			XMVECTOR v2 = XMLoadFloat3(&meshVertices[i2].Position);
+
+			float t = 0.0f;
+			if (DirectX::TriangleTests::Intersects(rayOrigin, rayDir, v0, v1, v2, t))
+			{
+				// 이 삼각형이 현재까지 가장 가까운 삼각형인지 판단.
+				if (t <= tmin)
+				{
+					// 피킹된 삼각형의 정보를 갱신.
+					tmin = t;
+					m_PickedTriangle = i;
+				}
+			}
+		}
+	}
+
 	/*
 		내가 관심있는 메시지에 대해서만 처리해주는 콜백 함수.
 	*/
-	LRESULT CALLBACK MapEditer::MessageHandler(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	LRESULT CALLBACK MapEditer::MessageHandler(
+		HWND hWnd,
+		UINT iMessage,
+		WPARAM wParam,
+		LPARAM lParam)
 	{
 		switch (iMessage)
 		{
 		case WM_LBUTTONDOWN :
 		case WM_MBUTTONDOWN :
 		case WM_RBUTTONDOWN :
-			OnMouseDown(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			OnMouseDown(
+				wParam,
+				GET_X_LPARAM(lParam),
+				GET_Y_LPARAM(lParam));
 			return 0;
 
 		case WM_LBUTTONUP :
 		case WM_MBUTTONUP :
 		case WM_RBUTTONUP :
-			OnMouseUp(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			OnMouseUp(
+				wParam,
+				GET_X_LPARAM(lParam),
+				GET_Y_LPARAM(lParam));
 			return 0;
 
 		case WM_MOUSEMOVE :
-			OnMouseMove(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			OnMouseMove(
+				wParam,
+				GET_X_LPARAM(lParam),
+				GET_Y_LPARAM(lParam));
 			return 0;
 
 		default:
@@ -809,7 +907,11 @@ namespace DirectXFramework
 		}
 	}
 
-	LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	LRESULT CALLBACK WndProc(
+		HWND hWnd,
+		UINT iMessage,
+		WPARAM wParam,
+		LPARAM lParam)
 	{
 		switch (iMessage)
 		{
