@@ -107,6 +107,7 @@ namespace DirectXFramework
 		Camera*		m_pCamera      = nullptr;
 		POINT		m_LastMousePos;
 		uint32_t    m_GridIndexCount = 0;
+		bool m_IsDrawWireFrame = false;
 
 		/* Picking */
 		XMFLOAT4 m_LightDirection = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };

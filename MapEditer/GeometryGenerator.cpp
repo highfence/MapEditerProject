@@ -60,8 +60,6 @@ namespace DirectXFramework
 			}
 		}
 
-		// TODO :: 피킹을 어떻게 해야할까?
-
 		return meshData;
 	}
 }

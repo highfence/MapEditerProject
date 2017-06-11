@@ -630,7 +630,14 @@ namespace DirectXFramework
 			m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pHeightMapVertexBuffer, &stride, &offset);
 			m_pImmediateContext->IASetIndexBuffer(m_pHeightMapIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 			
-			pTech->GetPassByIndex(0)->Apply(0, m_pImmediateContext);
+			if (m_IsDrawWireFrame)
+			{
+				pTech->GetPassByIndex(2)->Apply(0, m_pImmediateContext);
+			}
+			else
+			{
+				pTech->GetPassByIndex(0)->Apply(0, m_pImmediateContext);
+			}
 			m_pImmediateContext->DrawIndexed(m_MeshData->Indices32.size(), 0, 0);
 
 			// Restore default
@@ -674,6 +681,11 @@ namespace DirectXFramework
 		if (m_pInputLayer->IsKeyDown(VK_D))
 		{
 			m_pCamera->Strafe(CameraMoveSpeed * deltaTime);
+		}
+		if (m_pInputLayer->IsKeyDown(VK_NEXT))
+		{
+			if (m_IsDrawWireFrame) m_IsDrawWireFrame = false;
+			else m_IsDrawWireFrame = true;
 		}
 
 		m_pCamera->UpdateViewMatrix();
@@ -854,7 +866,7 @@ namespace DirectXFramework
 
 		GeometryGenerator geoGen;
 
-		geoGen.CreateGrid(150.0f, 150.0f, 2, 2, *m_MeshData);
+		geoGen.CreateGrid(150.0f, 150.0f, 30, 30, *m_MeshData);
 		m_GridIndexCount = m_MeshData->Indices32.size();
 
 		std::vector<MyVertex> vertices(m_MeshData->Vertices.size());
@@ -970,7 +982,8 @@ namespace DirectXFramework
 		/* 교차 판정 시작. */
 		// 선택 삼각형을 -1로 초기화한다.
 		m_PickedTriangle = -1;
-		float tmin = 0.0f;
+		// 임시로 가장 먼 거리를 잡은 tmin
+		float tmin = 10000.0f;
 
 		auto meshIndices = m_MeshData->Indices32;
 		auto meshVertices = m_MeshData->Vertices;

@@ -79,7 +79,7 @@ technique11 NormalTech
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetPixelShader(CompileShader(ps_5_0, PS()));
 
-		SetRasterizerState(WireFrameRS);
+		SetRasterizerState(SolidframeRS);
 	}
 	pass P1
 	{
@@ -88,5 +88,13 @@ technique11 NormalTech
 
 		SetRasterizerState(SolidframeRS);
 	}
+	pass P2
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetPixelShader(CompileShader(ps_5_0, PS()));
+
+		SetRasterizerState(WireFrameRS);
+	}
+
 }
 
