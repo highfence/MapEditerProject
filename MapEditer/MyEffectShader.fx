@@ -52,6 +52,12 @@ float4 PS(VertexOut vOut) : SV_TARGET
 	return vOut.color;
 }
 
+float4 PS_PICKED(VertexOut vOut) : SV_TARGET
+{
+	float4 finalColor = { 1.0f, 0.0f, 0.0f, 1.0f };
+	return finalColor;
+}
+
 RasterizerState SolidframeRS
 {
 	FillMode = Solid;
@@ -72,6 +78,13 @@ technique11 NormalTech
 	{
 		SetVertexShader(CompileShader(vs_5_0, VS()));
 		SetPixelShader(CompileShader(ps_5_0, PS()));
+
+		SetRasterizerState(WireFrameRS);
+	}
+	pass P1
+	{
+		SetVertexShader(CompileShader(vs_5_0, VS()));
+		SetPixelShader(CompileShader(ps_5_0, PS_PICKED()));
 
 		SetRasterizerState(SolidframeRS);
 	}

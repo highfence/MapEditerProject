@@ -442,6 +442,17 @@ namespace DirectXFramework
 			&m_pRenderTargetView,
 			m_pDepthStencilView);
 
+		// 피킹된 물체에 적용할 stencilState를 만들어 놓기.
+		D3D11_DEPTH_STENCIL_DESC pickedStencilDesc;
+		pickedStencilDesc.DepthEnable = true;
+		pickedStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+		pickedStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+		pickedStencilDesc.StencilEnable = false;
+
+		hr = m_pD3DDevice->CreateDepthStencilState(&pickedStencilDesc, &m_pPickedStencilState);
+
+		if (FAILED(hr)) return false;
+
 		return true;
 	}
 
@@ -619,8 +630,21 @@ namespace DirectXFramework
 			m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pHeightMapVertexBuffer, &stride, &offset);
 			m_pImmediateContext->IASetIndexBuffer(m_pHeightMapIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 			
-			pTech->GetPassByIndex(p)->Apply(0, m_pImmediateContext);
+			pTech->GetPassByIndex(0)->Apply(0, m_pImmediateContext);
 			m_pImmediateContext->DrawIndexed(m_MeshData->Indices32.size(), 0, 0);
+
+			// Restore default
+			m_pImmediateContext->RSSetState(0);
+
+			// 피킹된 삼각형이 존재하는 경우
+			if (m_PickedTriangle != -1)
+			{
+				m_pImmediateContext->OMSetDepthStencilState(m_pPickedStencilState, 0);
+				pTech->GetPassByIndex(p)->Apply(0, m_pImmediateContext);
+				m_pImmediateContext->DrawIndexed(3, 3 * m_PickedTriangle, 0);
+
+				m_pImmediateContext->OMSetDepthStencilState(0, 0);
+			}
 		}
 
 		m_pSwapChain->Present(0, 0);
@@ -999,11 +1023,13 @@ namespace DirectXFramework
 
 		case WM_LBUTTONUP :
 		case WM_MBUTTONUP :
-		case WM_RBUTTONUP :
 			OnMouseUp(
 				wParam,
 				GET_X_LPARAM(lParam),
 				GET_Y_LPARAM(lParam));
+			return 0;
+		case WM_RBUTTONUP :
+			m_PickedTriangle = -1;
 			return 0;
 
 		case WM_MOUSEMOVE :

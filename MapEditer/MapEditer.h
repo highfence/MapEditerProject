@@ -112,6 +112,7 @@ namespace DirectXFramework
 		XMFLOAT4 m_LightDirection = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
 		XMFLOAT4 m_LightColor     = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
 		UINT	 m_PickedTriangle = -1;
+		ID3D11DepthStencilState * m_pPickedStencilState = nullptr;
 
 	};
 
