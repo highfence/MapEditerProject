@@ -219,6 +219,7 @@
     <ClInclude Include="WinMain.h" />
   </ItemGroup>
   <ItemGroup>
+    <FxCompile Include="MyEffectShader.fx" />
     <FxCompile Include="MyShader.fx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

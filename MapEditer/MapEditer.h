@@ -29,6 +29,7 @@ namespace DirectXFramework
 		
 		bool DirectXSetting();
 		bool CreateShader();
+		bool CreateEffectShader();
 		bool CreateVertexBuffer();
 		bool CreateIndexBuffer();
 		bool CreateDepthStencilTexture();
@@ -47,6 +48,7 @@ namespace DirectXFramework
 		void OnMouseMove(WPARAM btnState, int x, int y);
 
 		bool DrawProc(float deltaTime);
+		bool DrawProcWithEffect(float deltaTime);
 
 		bool CreateConstantBuffer();
 		bool LoadTexture();

@@ -1,5 +1,6 @@
 #define _XM_NO_INTRINSICS_
 #include "stdafx.h"
+#include <iostream>
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
 #include "InputLayer.h"
@@ -60,7 +61,8 @@ namespace DirectXFramework
 				if (AccTime > 0.0167f)
 				{
 					if (!CalcProc(AccTime)) break;
-					if (!DrawProc(AccTime)) break;
+					//if (!DrawProc(AccTime)) break;
+					if (!DrawProcWithEffect(AccTime)) break;
 					AccTime = 0.f;
 				}
 			}
@@ -219,8 +221,9 @@ namespace DirectXFramework
 	bool MapEditer::DirectXSetting()
 	{
 		bool retval = true;
+		retval = retval && CreateEffectShader();
 		retval = retval && BuildGeometryBuffers();
-		retval = retval && CreateShader();
+		//retval = retval && CreateShader();
 		//retval = retval && CreateVertexBuffer();
 		//retval = retval && CreateIndexBuffer();
 		retval = retval && CreateConstantBuffer();
@@ -284,6 +287,54 @@ namespace DirectXFramework
 		return true;
 	}
 
+	bool MapEditer::CreateEffectShader()
+	{
+		ID3DBlob * pErrorBlob = nullptr;
+		ID3DBlob * pCompileBlob = nullptr;
+
+		HRESULT hr = D3DX11CompileFromFile(
+			L"MyEffectShader.fx", 0, 0,
+			0, "fx_5_0",
+			0, 0, 0,
+			&pCompileBlob, &pErrorBlob, 0);
+
+		if (FAILED(hr)) return false;
+
+		hr = D3DX11CreateEffectFromMemory(
+			pCompileBlob->GetBufferPointer(),
+			pCompileBlob->GetBufferSize(),
+			0, m_pD3DDevice, &m_pFX);
+
+		if (FAILED(hr)) return false;
+
+		pCompileBlob->Release();
+
+		D3D11_INPUT_ELEMENT_DESC layout[] =
+		{
+			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "NORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+			{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		};
+
+		ID3DX11EffectTechnique * pTech = nullptr;
+		pTech = m_pFX->GetTechniqueByName("NormalTech");
+		D3DX11_PASS_DESC passDesc;
+		pTech->GetPassByIndex(0)->GetDesc(&passDesc);
+
+		UINT numElements = ARRAYSIZE(layout);
+		hr = m_pD3DDevice->CreateInputLayout(
+			layout,
+			numElements,
+			passDesc.pIAInputSignature,
+			passDesc.IAInputSignatureSize,
+			&m_pVertexLayout);
+
+		if (FAILED(hr)) return false;
+
+		return true;
+	}
+
 	bool MapEditer::CreateVertexBuffer()
 	{
 		MyVertex vertices[] =
@@ -308,10 +359,12 @@ namespace DirectXFramework
 		D3D11_SUBRESOURCE_DATA initData;
 		ZeroMemory(&initData, sizeof(initData));
 		initData.pSysMem = vertices;
-		m_pD3DDevice->CreateBuffer(
+		auto hr = m_pD3DDevice->CreateBuffer(
 			&bd,
 			&initData,
 			&m_pVertexBuffer);
+
+		if (FAILED(hr)) return false;
 
 		return true;
 	}
@@ -518,6 +571,7 @@ namespace DirectXFramework
 
 		XMMATRIX wvp = m_World * m_View * m_Projection;
 
+		/* Effect FrameWork를 사용하기 전 코드.
 		ConstantBuffer cb;
 		cb.wvp = XMMatrixTranspose(wvp);
 		cb.world = XMMatrixTranspose(m_World);
@@ -527,6 +581,49 @@ namespace DirectXFramework
 		m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
 		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);// set constant buffer.
 		m_pImmediateContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+		*/
+
+		ID3DX11EffectMatrixVariable * pWvp = nullptr;
+		pWvp = m_pFX->GetVariableByName("wvp")->AsMatrix();
+		pWvp->SetMatrix((float*)(&wvp));
+
+		ID3DX11EffectMatrixVariable * pWorld = nullptr;
+		pWorld = m_pFX->GetVariableByName("world")->AsMatrix();
+		pWorld->SetMatrix((float*)(&m_World));
+
+		ID3DX11EffectVectorVariable * pLightDir = nullptr;
+		pLightDir = m_pFX->GetVariableByName("lightDir")->AsVector();
+		pLightDir->SetFloatVector((float*)&m_LightDirection);
+
+		ID3DX11EffectVectorVariable * pLightColor = nullptr;
+		pLightColor = m_pFX->GetVariableByName("lightColor")->AsVector();
+		pLightColor->SetFloatVector((float*)&m_LightColor);
+
+		// 텍스쳐 세팅.
+		ID3DX11EffectShaderResourceVariable * pDiffuseMap = nullptr;
+		pDiffuseMap = m_pFX->GetVariableByName("texDiffuse")->AsShaderResource();
+		pDiffuseMap->SetResource(m_pTextureRV);
+
+		// 사용할 Technique
+		ID3DX11EffectTechnique * pTech = nullptr;
+		pTech = m_pFX->GetTechniqueByName("NormalTech");
+
+		// 렌더링
+		D3DX11_TECHNIQUE_DESC techDesc;
+		pTech->GetDesc(&techDesc);
+		UINT stride = sizeof(MyVertex);
+		UINT offset = 0;
+
+		for (UINT p = 0; p < techDesc.Passes; ++p)
+		{
+			m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pHeightMapVertexBuffer, &stride, &offset);
+			m_pImmediateContext->IASetIndexBuffer(m_pHeightMapIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+			
+			pTech->GetPassByIndex(p)->Apply(0, m_pImmediateContext);
+			m_pImmediateContext->DrawIndexed(m_MeshData->Indices32.size(), 0, 0);
+		}
+
+		m_pSwapChain->Present(0, 0);
 	}
 
 	void MapEditer::CalculateMatrix()
@@ -641,6 +738,20 @@ namespace DirectXFramework
 
 		// Render (백버퍼를 프론트버퍼로 그린다.)
 		m_pSwapChain->Present(0, 0);
+		return true;
+	}
+
+	bool MapEditer::DrawProcWithEffect(float deltaTime)
+	{
+		const FLOAT clearColor[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
+		m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, clearColor);
+		m_pImmediateContext->ClearDepthStencilView(m_pDepthStencilView,	D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+		// Set Input Assembler 
+		m_pImmediateContext->IASetInputLayout(m_pVertexLayout);
+		m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		CalculateMatrixForHeightMap(deltaTime);
 		return true;
 	}
 

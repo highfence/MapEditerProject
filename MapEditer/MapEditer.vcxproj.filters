@@ -68,5 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="MyShader.fx" />
+    <FxCompile Include="MyEffectShader.fx" />
   </ItemGroup>
 </Project>
