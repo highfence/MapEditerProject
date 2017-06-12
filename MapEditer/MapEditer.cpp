@@ -12,8 +12,13 @@
 #include "MyTimer.h"
 #include "Camera.h"
 #include "GeometryGenerator.h"
+#include "resource.h"
 #include "MapEditer.h"
 
+static int map_width = 0;
+static int map_height = 0;
+static int vertex_width = 0;
+static int vertex_height = 0;
 
 namespace DirectXFramework
 {
@@ -26,6 +31,7 @@ namespace DirectXFramework
 		m_Width(tempWidth),
 		m_Height(tempHeight)
 	{
+		MapSetting();
 		InitWindow();
 		InitDirectX();
 
@@ -46,10 +52,16 @@ namespace DirectXFramework
 		mapEditerHandler = nullptr;
 	}
 
+	void MapEditer::MapSetting()
+	{
+		DialogBox(m_hInstance, MAKEINTRESOURCE(IDD_DIALOG1), m_hWnd, MapSettingProc);
+	}
+
 	void MapEditer::Run()
 	{
 		static float AccTime = 0.f;
 		m_pTimer->ProcessTime();
+
 
 		while (true)
 		{
@@ -878,7 +890,8 @@ namespace DirectXFramework
 
 		GeometryGenerator geoGen;
 
-		geoGen.CreateGrid(150.0f, 150.0f, 40, 40, *m_MeshData);
+		//geoGen.CreateGrid(150.0f, 150.0f, 20, 20, *m_MeshData);
+		geoGen.CreateGrid(map_width, map_height, vertex_width, vertex_height, *m_MeshData);
 		m_GridIndexCount = m_MeshData->Indices32.size();
 
 		m_MeshData->Vertices.reserve(m_MeshData->Vertices.size());
@@ -1036,7 +1049,7 @@ namespace DirectXFramework
 		}
 	}
 
-	const float changeDelta = 0.1f;
+	const float changeDelta = 0.3f;
 	void MapEditer::GeometryHeightChange(int inputKey)
 	{
 #pragma region util
@@ -1102,11 +1115,13 @@ namespace DirectXFramework
 		{
 			// PAGE_UP이 눌린 경우, 높이를 올려줌.
 			pickedVertex.pos.y += changeDelta;
+			pickedVertex.color = GetColorByHeight(pickedVertex.pos.y);
 		}
 		else if (inputKey == VK_NEXT)
 		{
 			// PAGE_DOWN이 눌린 경우, 높이를 내려줌.
 			pickedVertex.pos.y -= changeDelta;
+			pickedVertex.color = GetColorByHeight(pickedVertex.pos.y);
 		}
 
 		// 역추적한 Vertex에서 가까이 있는 Vertex에 접근
@@ -1122,9 +1137,24 @@ namespace DirectXFramework
 				vertices[vertexIdx].pos.x,
 				vertices[vertexIdx].pos.z);
 
-			vertices[vertexIdx].pos.y = GetSinHeight(
-				pickedVertex.pos.y,
-				dist);
+			auto newHeight = GetSinHeight(pickedVertex.pos.y, dist);
+
+			if (inputKey == VK_PRIOR)
+			{
+				if (newHeight > vertices[vertexIdx].pos.y)
+				{
+					vertices[vertexIdx].pos.y = newHeight;
+					vertices[vertexIdx].color = GetColorByHeight(newHeight);
+				}
+			}
+			else
+			{ 
+				if (newHeight < vertices[vertexIdx].pos.y)
+				{
+					vertices[vertexIdx].pos.y = newHeight;
+					vertices[vertexIdx].color = GetColorByHeight(newHeight);
+				}
+			}
 		}
 
 		DataMapping();
@@ -1156,78 +1186,120 @@ namespace DirectXFramework
 		auto width = m_MeshData->GetWidthNum();
 		auto height = m_MeshData->GetHeightNum();
 
-		int curIdx = pickedVertexIdx;
-		// 위쪽으로
-		while (true)
 		{
-			curIdx -= width;
-			if (curIdx < 0) break;
+			//int curIdx = pickedVertexIdx;
+			//// 위쪽으로
+			//while (true)
+			//{
+			//	curIdx -= width;
+			//	if (curIdx < 0) break;
 
-			auto dist = GetDistance(
-				pickedVertex.pos.x,
-				pickedVertex.pos.z,
-				m_MeshData->Vertices[curIdx].pos.x,
-				m_MeshData->Vertices[curIdx].pos.z);
+			//	auto dist = GetDistance(
+			//		pickedVertex.pos.x,
+			//		pickedVertex.pos.z,
+			//		m_MeshData->Vertices[curIdx].pos.x,
+			//		m_MeshData->Vertices[curIdx].pos.z);
 
-			if (dist > m_SelectRange) break;
-			else vertexVector.push_back(curIdx);
+			//	if (dist > m_SelectRange) break;
+			//	else vertexVector.push_back(curIdx);
+			//}
+
+			//// 왼쪽으로
+			//curIdx = pickedVertexIdx;
+			//int minIdx = pickedVertexIdx - pickedVertexIdx % width;
+			//while (true)
+			//{
+			//	--curIdx;
+			//	if (curIdx < minIdx) break;
+
+			//	auto dist = GetDistance(
+			//		pickedVertex.pos.x,
+			//		pickedVertex.pos.z,
+			//		m_MeshData->Vertices[curIdx].pos.x,
+			//		m_MeshData->Vertices[curIdx].pos.z);
+
+			//	if (dist > m_SelectRange) break;
+			//	else vertexVector.push_back(curIdx);
+			//}
+
+			//// 오른쪽으로
+			//curIdx = pickedVertexIdx;
+			//int maxIdx = minIdx + width;
+			//while (true)
+			//{
+			//	++curIdx;
+			//	if (curIdx > maxIdx) break;
+
+			//	auto dist = GetDistance(
+			//		pickedVertex.pos.x,
+			//		pickedVertex.pos.z,
+			//		m_MeshData->Vertices[curIdx].pos.x,
+			//		m_MeshData->Vertices[curIdx].pos.z);
+
+			//	if (dist > m_SelectRange) break;
+			//	else vertexVector.push_back(curIdx);
+			//}
+
+			//// 아래쪽으로
+			//curIdx = pickedVertexIdx;
+			//while (true)
+			//{
+			//	curIdx += width;
+			//	if (curIdx >= m_MeshData->Vertices.size()) break;
+
+			//	auto dist = GetDistance(
+			//		pickedVertex.pos.x,
+			//		pickedVertex.pos.z,
+			//		m_MeshData->Vertices[curIdx].pos.x,
+			//		m_MeshData->Vertices[curIdx].pos.z);
+
+			//	if (dist > m_SelectRange) break;
+			//	else vertexVector.push_back(curIdx);
+			//}
 		}
 
-		// 왼쪽으로
-		curIdx = pickedVertexIdx;
-		int minIdx = pickedVertexIdx - pickedVertexIdx % width;
-		while (true)
+		for (int i = 0; i < m_MeshData->Vertices.size(); ++i)
 		{
-			--curIdx;
-			if (curIdx < minIdx) break;
-
 			auto dist = GetDistance(
-				pickedVertex.pos.x,
-				pickedVertex.pos.z,
-				m_MeshData->Vertices[curIdx].pos.x,
-				m_MeshData->Vertices[curIdx].pos.z);
+					pickedVertex.pos.x,
+					pickedVertex.pos.z,
+					m_MeshData->Vertices[i].pos.x,
+					m_MeshData->Vertices[i].pos.z); 
 
-			if (dist > m_SelectRange) break;
-			else vertexVector.push_back(curIdx);
-		}
-
-		// 오른쪽으로
-		curIdx = pickedVertexIdx;
-		int maxIdx = minIdx + width;
-		while (true)
-		{
-			++curIdx;
-			if (curIdx > maxIdx) break;
-
-			auto dist = GetDistance(
-				pickedVertex.pos.x,
-				pickedVertex.pos.z,
-				m_MeshData->Vertices[curIdx].pos.x,
-				m_MeshData->Vertices[curIdx].pos.z);
-
-			if (dist > m_SelectRange) break;
-			else vertexVector.push_back(curIdx);
-		}
-
-		// 아래쪽으로
-		curIdx = pickedVertexIdx;
-		while (true)
-		{
-			curIdx += width;
-			if (curIdx > m_MeshData->Vertices.size()) break;
-
-			auto dist = GetDistance(
-				pickedVertex.pos.x,
-				pickedVertex.pos.z,
-				m_MeshData->Vertices[curIdx].pos.x,
-				m_MeshData->Vertices[curIdx].pos.z);
-
-			if (dist > m_SelectRange) break;
-			else vertexVector.push_back(curIdx);
+			if (dist < m_SelectRange)
+			{
+				vertexVector.push_back(i);
+			}
 		}
 
 		return vertexVector;
 	}
+
+	XMFLOAT4 MapEditer::GetColorByHeight(float height)
+	{
+		if (height < -10.0f)
+		{
+			return XMFLOAT4(1.0f, 0.96f, 0.62f, 1.0f);
+		}
+		else if (height < 5.0f)
+		{
+			return XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+		}
+		else if (height < 12.0f)
+		{
+			return XMFLOAT4(0.1f, 0.48f, 0.19f, 1.0f);
+		}
+		else if (height < 20.0f)
+		{
+			return XMFLOAT4(0.45f, 0.39f, 0.34f, 1.0f);
+		}
+		else
+		{
+			return XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+		}
+	}
+
+
 
 	/*
 		내가 관심있는 메시지에 대해서만 처리해주는 콜백 함수.
@@ -1293,4 +1365,34 @@ namespace DirectXFramework
 		}
 	}
 
+	BOOL CALLBACK MapSettingProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	{
+
+		switch (iMessage)
+		{
+		case WM_INITDIALOG :
+			SetDlgItemInt(hWnd, IDC_MAP_WIDTH, map_width, FALSE);
+			SetDlgItemInt(hWnd, IDC_MAP_HEIGHT, map_height, FALSE);
+			SetDlgItemInt(hWnd, IDC_VERTEX_WIDTH, vertex_width, FALSE);
+			SetDlgItemInt(hWnd, IDC_VERTEX_HEIGHT, vertex_height, FALSE);
+			return TRUE;
+
+		case WM_COMMAND :
+			switch (LOWORD(wParam))
+			{
+			case IDOK :
+				map_width = GetDlgItemInt(hWnd, IDC_MAP_WIDTH, NULL, FALSE);
+				map_height = GetDlgItemInt(hWnd, IDC_MAP_HEIGHT, NULL, FALSE);
+				vertex_width = GetDlgItemInt(hWnd, IDC_VERTEX_WIDTH, NULL, FALSE);
+				vertex_height = GetDlgItemInt(hWnd, IDC_VERTEX_HEIGHT, NULL, FALSE);
+				EndDialog(hWnd, IDOK);
+				return TRUE;
+
+			case IDCANCEL :
+				PostQuitMessage(0);
+				return TRUE;
+			}
+		}
+		return FALSE;
+	}
 }

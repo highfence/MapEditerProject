@@ -65,9 +65,17 @@
     <ClInclude Include="GeometryGenerator.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="MyShader.fx" />
     <FxCompile Include="MyEffectShader.fx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MapEditer.rc">
+      <Filter>리소스 파일</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

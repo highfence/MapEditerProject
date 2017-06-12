@@ -40,6 +40,7 @@ namespace DirectXFramework
 		void CalculateMatrixForBox2(float deltaTime);
 		void CalculateMatrixForHeightMap(float deltaTime);
 		void CalculateMatrix();
+		void MapSetting();
 
 		/* Input Processing Functions */
 		void OnKeyboardInput(float deltaTime);
@@ -59,6 +60,8 @@ namespace DirectXFramework
 		void TranslateMousePosTrayWnd(int* sx, int* sy);
 		void GeometryHeightChange(int inputKey);
 		std::vector<int> GetSelectRange();
+		XMFLOAT4 GetColorByHeight(float height);
+
 
 	private :
 
@@ -126,6 +129,8 @@ namespace DirectXFramework
 
 	static MapEditer* mapEditerHandler = nullptr;
 
+	/* Message Handler */
+	BOOL CALLBACK MapSettingProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 	LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 }

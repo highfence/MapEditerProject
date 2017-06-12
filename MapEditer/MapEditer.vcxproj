@@ -215,12 +215,16 @@
     <ClInclude Include="KeyState.h" />
     <ClInclude Include="MapEditer.h" />
     <ClInclude Include="MyTimer.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="WinMain.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="MyEffectShader.fx" />
     <FxCompile Include="MyShader.fx" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MapEditer.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
