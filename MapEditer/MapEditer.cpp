@@ -1,9 +1,12 @@
 #define _XM_NO_INTRINSICS_
+#define _USE_MATH_DEFINES
 #include "stdafx.h"
 #include <iostream>
 #include <string>
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
+#include <cfloat>
+#include <math.h>
 #include "InputLayer.h"
 #include "Definition.h"
 #include "MyTimer.h"
@@ -1034,9 +1037,53 @@ namespace DirectXFramework
 	}
 
 	const float changeDelta = 0.1f;
-	const float changeRange = 50.f;
 	void MapEditer::GeometryHeightChange(int inputKey)
 	{
+#pragma region util
+		
+		// 변한 데이터를 동적으로 매핑해줌.
+		auto DataMapping = [this]()
+		{
+			D3D11_MAPPED_SUBRESOURCE mappedData;
+			auto hr = m_pImmediateContext->Map(m_pHeightMapVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
+			MyVertex* v = reinterpret_cast<MyVertex*>(mappedData.pData);
+
+			for (UINT i = 0; i < m_MeshData->Vertices.size(); ++i)
+			{
+				v[i].pos = m_MeshData->Vertices[i].pos;
+				v[i].color = m_MeshData->Vertices[i].color;
+			}
+
+			m_pImmediateContext->Unmap(m_pHeightMapIndexBuffer, 0);
+		};
+
+		// 거리에 따른 사인 그래프 높이 값을 반환해줌.
+		auto GetSinHeight = [&](float stndHeight, float distance) -> float
+		{
+			if (m_SelectRange == 0.f) return FLT_MAX;
+			auto normDist = distance / m_SelectRange;
+
+			// 거리가 변화 범위보다 멀면 floatMax를 반환.
+			if (normDist > 1.0f) return FLT_MAX;
+
+			float sinInput = (float)1.57079632679489661923 + (float)1.57079632679489661923 * normDist;
+			
+			return stndHeight * sinf(sinInput);
+		};
+
+		// 좌표에 따른 거리 값을 반환해줌.
+		auto GetDistance = [](float x1, float z1, float x2, float z2) -> float
+		{
+			auto dx = x1 - x2;
+			auto dz = z1 - z2;
+
+			auto dist = sqrtf(dx * dx + dz * dz);
+
+			return dist;
+		};
+
+#pragma endregion
+
 		// 선택한 삼각형이 없는 상태라면 바로 리턴.
 		if (m_PickedTriangle == -1)
 		{
@@ -1054,34 +1101,132 @@ namespace DirectXFramework
 		if (inputKey == VK_PRIOR)
 		{
 			// PAGE_UP이 눌린 경우, 높이를 올려줌.
-			vertices[indices[m_PickedTriangle * 3]].pos.y += changeDelta;
-			vertices[indices[m_PickedTriangle * 3 + 1]].pos.y += changeDelta;
-			vertices[indices[m_PickedTriangle * 3 + 2]].pos.y += changeDelta;
+			pickedVertex.pos.y += changeDelta;
 		}
 		else if (inputKey == VK_NEXT)
 		{
 			// PAGE_DOWN이 눌린 경우, 높이를 내려줌.
-			vertices[indices[m_PickedTriangle * 3]].pos.y -= changeDelta;
-			vertices[indices[m_PickedTriangle * 3 + 1]].pos.y -= changeDelta;
-			vertices[indices[m_PickedTriangle * 3 + 2]].pos.y -= changeDelta;
+			pickedVertex.pos.y -= changeDelta;
 		}
 
 		// 역추적한 Vertex에서 가까이 있는 Vertex에 접근
 		auto width = m_MeshData->GetWidthNum();
 		auto height = m_MeshData->GetHeightNum();
 
-		D3D11_MAPPED_SUBRESOURCE mappedData;
-		auto hr = m_pImmediateContext->Map(m_pHeightMapVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
-		MyVertex* v = reinterpret_cast<MyVertex*>(mappedData.pData);
-
-		for (UINT i = 0; i < m_MeshData->Vertices.size(); ++i)
+		auto vec = GetSelectRange();
+		for (auto& vertexIdx : vec)
 		{
-			v[i].pos = m_MeshData->Vertices[i].pos;
-			v[i].color = m_MeshData->Vertices[i].color;
+			auto dist = GetDistance(
+				pickedVertex.pos.x,
+				pickedVertex.pos.z,
+				vertices[vertexIdx].pos.x,
+				vertices[vertexIdx].pos.z);
+
+			vertices[vertexIdx].pos.y = GetSinHeight(
+				pickedVertex.pos.y,
+				dist);
 		}
 
-		m_pImmediateContext->Unmap(m_pHeightMapIndexBuffer, 0);
+		DataMapping();
+	}
 
+	// Picking된 점이 있을 때, 그 근처의 지점을 반환해주는 함수.
+	std::vector<int> MapEditer::GetSelectRange()
+	{
+#pragma region Util
+
+		// 좌표에 따른 거리 값을 반환해줌.
+		auto GetDistance = [](float x1, float z1, float x2, float z2) -> float
+		{
+			auto dx = x1 - x2;
+			auto dz = z1 - z2;
+
+			auto dist = sqrtf(dx * dx + dz * dz);
+
+			return dist;
+		};
+
+#pragma endregion
+		std::vector<int> vertexVector;
+		if (m_PickedTriangle == -1) return vertexVector;
+
+		auto pickedVertexIdx = m_MeshData->Indices32[m_PickedTriangle];
+		auto pickedVertex = m_MeshData->Vertices[pickedVertexIdx];
+
+		auto width = m_MeshData->GetWidthNum();
+		auto height = m_MeshData->GetHeightNum();
+
+		int curIdx = pickedVertexIdx;
+		// 위쪽으로
+		while (true)
+		{
+			curIdx -= width;
+			if (curIdx < 0) break;
+
+			auto dist = GetDistance(
+				pickedVertex.pos.x,
+				pickedVertex.pos.z,
+				m_MeshData->Vertices[curIdx].pos.x,
+				m_MeshData->Vertices[curIdx].pos.z);
+
+			if (dist > m_SelectRange) break;
+			else vertexVector.push_back(curIdx);
+		}
+
+		// 왼쪽으로
+		curIdx = pickedVertexIdx;
+		int minIdx = pickedVertexIdx - pickedVertexIdx % width;
+		while (true)
+		{
+			--curIdx;
+			if (curIdx < minIdx) break;
+
+			auto dist = GetDistance(
+				pickedVertex.pos.x,
+				pickedVertex.pos.z,
+				m_MeshData->Vertices[curIdx].pos.x,
+				m_MeshData->Vertices[curIdx].pos.z);
+
+			if (dist > m_SelectRange) break;
+			else vertexVector.push_back(curIdx);
+		}
+
+		// 오른쪽으로
+		curIdx = pickedVertexIdx;
+		int maxIdx = minIdx + width;
+		while (true)
+		{
+			++curIdx;
+			if (curIdx > maxIdx) break;
+
+			auto dist = GetDistance(
+				pickedVertex.pos.x,
+				pickedVertex.pos.z,
+				m_MeshData->Vertices[curIdx].pos.x,
+				m_MeshData->Vertices[curIdx].pos.z);
+
+			if (dist > m_SelectRange) break;
+			else vertexVector.push_back(curIdx);
+		}
+
+		// 아래쪽으로
+		curIdx = pickedVertexIdx;
+		while (true)
+		{
+			curIdx += width;
+			if (curIdx > m_MeshData->Vertices.size()) break;
+
+			auto dist = GetDistance(
+				pickedVertex.pos.x,
+				pickedVertex.pos.z,
+				m_MeshData->Vertices[curIdx].pos.x,
+				m_MeshData->Vertices[curIdx].pos.z);
+
+			if (dist > m_SelectRange) break;
+			else vertexVector.push_back(curIdx);
+		}
+
+		return vertexVector;
 	}
 
 	/*

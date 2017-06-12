@@ -58,7 +58,7 @@ namespace DirectXFramework
 		void Pick(int sx, int sy);
 		void TranslateMousePosTrayWnd(int* sx, int* sy);
 		void GeometryHeightChange(int inputKey);
-
+		std::vector<int> GetSelectRange();
 
 	private :
 
@@ -113,6 +113,8 @@ namespace DirectXFramework
 		POINT		m_LastMousePos;
 		uint32_t    m_GridIndexCount = 0;
 		bool		m_IsDrawWireFrame = false;
+		float		m_SelectRange = 25.f;
+		const float m_ChangeDelta = 0.1f;
 
 		/* Picking */
 		XMFLOAT4 m_LightDirection = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
