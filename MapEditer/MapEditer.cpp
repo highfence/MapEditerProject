@@ -878,7 +878,7 @@ namespace DirectXFramework
 
 		GeometryGenerator geoGen;
 
-		geoGen.CreateGrid(15.0f, 15.0f, 2, 2, *m_MeshData);
+		geoGen.CreateGrid(150.0f, 150.0f, 40, 40, *m_MeshData);
 		m_GridIndexCount = m_MeshData->Indices32.size();
 
 		m_MeshData->Vertices.reserve(m_MeshData->Vertices.size());
@@ -886,7 +886,7 @@ namespace DirectXFramework
 		{
 			XMFLOAT3 p = m_MeshData->Vertices[i].pos;
 
-			p.y = GetHeight(p.x, p.z);
+			//p.y = GetHeight(p.x, p.z);
 
 			m_MeshData->Vertices[i].pos = p;
 
@@ -1094,7 +1094,7 @@ namespace DirectXFramework
 		auto& vertices = m_MeshData->Vertices;
 
 		// 선택한 삼각형이 있는 상태라면, 인덱스를 가지고 Vertex를 역추적.
-		auto& pickedVertexIdx = indices[m_PickedTriangle];
+		auto& pickedVertexIdx = indices[m_PickedTriangle * 3];
 		auto& pickedVertex = vertices[pickedVertexIdx];
 
 		// Vertex의 높이를 조정.
@@ -1150,7 +1150,7 @@ namespace DirectXFramework
 		std::vector<int> vertexVector;
 		if (m_PickedTriangle == -1) return vertexVector;
 
-		auto pickedVertexIdx = m_MeshData->Indices32[m_PickedTriangle];
+		auto pickedVertexIdx = m_MeshData->Indices32[m_PickedTriangle * 3];
 		auto pickedVertex = m_MeshData->Vertices[pickedVertexIdx];
 
 		auto width = m_MeshData->GetWidthNum();
