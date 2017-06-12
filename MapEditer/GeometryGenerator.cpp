@@ -32,13 +32,13 @@ namespace DirectXFramework
 			{
 				float x = -halfWidth + j * dx;
 
-				meshData.Vertices[i * n + j].Position = DirectX::XMFLOAT3(x, 0.0f, z);
+				meshData.Vertices[i * n + j].pos = DirectX::XMFLOAT3(x, 0.0f, z);
 
-				meshData.Vertices[i * n + j].Normal = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
-				meshData.Vertices[i * n + j].TangentU = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
+				meshData.Vertices[i * n + j].normal = DirectX::XMFLOAT3(0.0f, 1.0f, 0.0f);
+				//meshData.Vertices[i * n + j].TangentU = DirectX::XMFLOAT3(1.0f, 0.0f, 0.0f);
 
-				meshData.Vertices[i * n + j].TexC.x = j * du;
-				meshData.Vertices[i * n + j].TexC.y = i * dv;
+				meshData.Vertices[i * n + j].tex.x = j * du;
+				meshData.Vertices[i * n + j].tex.y = i * dv;
 			}
 		}
 
@@ -59,6 +59,9 @@ namespace DirectXFramework
 				k += 6;
 			}
 		}
+
+		meshData.SetWidthNum(m);
+		meshData.SetHeightNum(n);
 
 		return meshData;
 	}

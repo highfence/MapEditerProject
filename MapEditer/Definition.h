@@ -54,7 +54,7 @@ namespace DirectXFramework
 
 	struct MeshData
 	{
-		std::vector<Vertex> Vertices;
+		std::vector<MyVertex> Vertices;
 		std::vector<uint32_t> Indices32;
 
 		std::vector<uint16_t>& GetIndices16()
@@ -69,7 +69,14 @@ namespace DirectXFramework
 			}
 		}
 
-	private:
+		UINT GetWidthNum() const { return widthNum; };
+		UINT GetHeightNum() const { return heightNum; };
+		void SetWidthNum(UINT num) { widthNum = num; };
+		void SetHeightNum(UINT num) { heightNum = num; };
+
+	private :
 		std::vector<uint16_t> m_Indices16;
+		UINT widthNum = 0;
+		UINT heightNum = 0;
 	};
 }

@@ -1,6 +1,7 @@
 #define _XM_NO_INTRINSICS_
 #include "stdafx.h"
 #include <iostream>
+#include <string>
 #include <DirectXMath.h>
 #include <DirectXCollision.h>
 #include "InputLayer.h"
@@ -682,10 +683,18 @@ namespace DirectXFramework
 		{
 			m_pCamera->Strafe(CameraMoveSpeed * deltaTime);
 		}
-		if (m_pInputLayer->IsKeyDown(VK_NEXT))
+		if (m_pInputLayer->IsKeyDown(VK_TAB))
 		{
 			if (m_IsDrawWireFrame) m_IsDrawWireFrame = false;
 			else m_IsDrawWireFrame = true;
+		}
+		if (m_pInputLayer->IsKeyDown(VK_PRIOR))
+		{
+			GeometryHeightChange(VK_PRIOR);
+		}
+		if (m_pInputLayer->IsKeyDown(VK_NEXT))
+		{
+			GeometryHeightChange(VK_NEXT);
 		}
 
 		m_pCamera->UpdateViewMatrix();
@@ -866,52 +875,51 @@ namespace DirectXFramework
 
 		GeometryGenerator geoGen;
 
-		geoGen.CreateGrid(150.0f, 150.0f, 30, 30, *m_MeshData);
+		geoGen.CreateGrid(15.0f, 15.0f, 2, 2, *m_MeshData);
 		m_GridIndexCount = m_MeshData->Indices32.size();
 
-		std::vector<MyVertex> vertices(m_MeshData->Vertices.size());
+		m_MeshData->Vertices.reserve(m_MeshData->Vertices.size());
 		for (size_t i = 0; i < m_MeshData->Vertices.size(); ++i)
 		{
-			XMFLOAT3 p = m_MeshData->Vertices[i].Position;
+			XMFLOAT3 p = m_MeshData->Vertices[i].pos;
 
 			p.y = GetHeight(p.x, p.z);
 
-			vertices[i].pos = p;
+			m_MeshData->Vertices[i].pos = p;
 
 			if (p.y < -10.0f)
 			{
-				vertices[i].color = XMFLOAT4(1.0f, 0.96f, 0.62f, 1.0f);
+				m_MeshData->Vertices[i].color = XMFLOAT4(1.0f, 0.96f, 0.62f, 1.0f);
 			}
 			else if (p.y < 5.0f)
 			{
-				vertices[i].color = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+				m_MeshData->Vertices[i].color = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
 			}
 			else if (p.y < 12.0f)
 			{
-				vertices[i].color = XMFLOAT4(0.1f, 0.48f, 0.19f, 1.0f);
+				m_MeshData->Vertices[i].color = XMFLOAT4(0.1f, 0.48f, 0.19f, 1.0f);
 			}
 			else if (p.y < 20.0f)
 			{
-				vertices[i].color = XMFLOAT4(0.45f, 0.39f, 0.34f, 1.0f);
+				m_MeshData->Vertices[i].color = XMFLOAT4(0.45f, 0.39f, 0.34f, 1.0f);
 			}
 			else 
 			{
-				vertices[i].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+				m_MeshData->Vertices[i].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			}
 		}
 
 		D3D11_BUFFER_DESC vbd;
 		ZeroMemory(&vbd, sizeof(vbd));
-		vbd.Usage = D3D11_USAGE_IMMUTABLE;
+		vbd.Usage = D3D11_USAGE_DYNAMIC;
 		vbd.ByteWidth = sizeof(MyVertex) * m_MeshData->Vertices.size();
-		vbd.Usage = D3D11_USAGE_DEFAULT;
 		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-		vbd.CPUAccessFlags = 0;
+		vbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		vbd.MiscFlags = 0;
 
 		D3D11_SUBRESOURCE_DATA vinitData;
 		ZeroMemory(&vinitData, sizeof(vinitData));
-		vinitData.pSysMem = &vertices[0];
+		vinitData.pSysMem = &m_MeshData->Vertices[0];
 		auto hr = m_pD3DDevice->CreateBuffer(
 			&vbd,
 			&vinitData,
@@ -947,6 +955,7 @@ namespace DirectXFramework
 
 	void MapEditer::Pick(int sx, int sy)
 	{
+		TranslateMousePosTrayWnd(&sx, &sy);
 		// 메쉬 데이터가 아직 만들어지지 않은 상태라면, 에러로 판단.
 		if (m_MeshData == nullptr) return;
 
@@ -996,9 +1005,9 @@ namespace DirectXFramework
 			UINT i2 = meshIndices[i*3 + 2];
 
 			// 인덱스에 따라 찾은 정점 정보.
-			XMVECTOR v0 = XMLoadFloat3(&meshVertices[i0].Position);
-			XMVECTOR v1 = XMLoadFloat3(&meshVertices[i1].Position);
-			XMVECTOR v2 = XMLoadFloat3(&meshVertices[i2].Position);
+			XMVECTOR v0 = XMLoadFloat3(&meshVertices[i0].pos);
+			XMVECTOR v1 = XMLoadFloat3(&meshVertices[i1].pos);
+			XMVECTOR v2 = XMLoadFloat3(&meshVertices[i2].pos);
 
 			float t = 0.0f;
 			if (DirectX::TriangleTests::Intersects(rayOrigin, rayDir, v0, v1, v2, t))
@@ -1012,6 +1021,67 @@ namespace DirectXFramework
 				}
 			}
 		}
+	}
+
+	void MapEditer::TranslateMousePosTrayWnd(int * sx, int * sy)
+	{
+		HWND hWndTrayWnd = ::FindWindow(TEXT("Shell_TrayWnd"), NULL);
+		RECT rc;
+		if (hWndTrayWnd)
+		{
+			GetWindowRect(hWndTrayWnd, &rc);
+		}
+	}
+
+	const float changeDelta = 0.1f;
+	const float changeRange = 50.f;
+	void MapEditer::GeometryHeightChange(int inputKey)
+	{
+		// 선택한 삼각형이 없는 상태라면 바로 리턴.
+		if (m_PickedTriangle == -1)
+		{
+			return;
+		}
+
+		auto& indices = m_MeshData->Indices32;
+		auto& vertices = m_MeshData->Vertices;
+
+		// 선택한 삼각형이 있는 상태라면, 인덱스를 가지고 Vertex를 역추적.
+		auto& pickedVertexIdx = indices[m_PickedTriangle];
+		auto& pickedVertex = vertices[pickedVertexIdx];
+
+		// Vertex의 높이를 조정.
+		if (inputKey == VK_PRIOR)
+		{
+			// PAGE_UP이 눌린 경우, 높이를 올려줌.
+			vertices[indices[m_PickedTriangle * 3]].pos.y += changeDelta;
+			vertices[indices[m_PickedTriangle * 3 + 1]].pos.y += changeDelta;
+			vertices[indices[m_PickedTriangle * 3 + 2]].pos.y += changeDelta;
+		}
+		else if (inputKey == VK_NEXT)
+		{
+			// PAGE_DOWN이 눌린 경우, 높이를 내려줌.
+			vertices[indices[m_PickedTriangle * 3]].pos.y -= changeDelta;
+			vertices[indices[m_PickedTriangle * 3 + 1]].pos.y -= changeDelta;
+			vertices[indices[m_PickedTriangle * 3 + 2]].pos.y -= changeDelta;
+		}
+
+		// 역추적한 Vertex에서 가까이 있는 Vertex에 접근
+		auto width = m_MeshData->GetWidthNum();
+		auto height = m_MeshData->GetHeightNum();
+
+		D3D11_MAPPED_SUBRESOURCE mappedData;
+		auto hr = m_pImmediateContext->Map(m_pHeightMapVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
+		MyVertex* v = reinterpret_cast<MyVertex*>(mappedData.pData);
+
+		for (UINT i = 0; i < m_MeshData->Vertices.size(); ++i)
+		{
+			v[i].pos = m_MeshData->Vertices[i].pos;
+			v[i].color = m_MeshData->Vertices[i].color;
+		}
+
+		m_pImmediateContext->Unmap(m_pHeightMapIndexBuffer, 0);
+
 	}
 
 	/*
