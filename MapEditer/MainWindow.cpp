@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include <string>
 #include "resource.h"
+#include "MyTimer.h"
 #include "MainWindow.h"
 
 namespace DXMapEditer
@@ -10,8 +11,43 @@ namespace DXMapEditer
 		m_hInst = hInstance;
 		m_CmdShow = nCmdShow;
 
-		InitWindow();
+		m_pTimer = std::make_unique<MyTimer>();
+		m_pTimer->Init();
+
 		GetInitSetting();
+		InitWindow();
+	}
+
+	MainWindow::~MainWindow()
+	{
+		DestroyWindow(m_hWnd);
+	}
+
+	void MainWindow::Run()
+	{
+		const float frameTime = 1 / (float)60;
+		static float AccTime = 0;
+		m_pTimer->ProcessTime();
+
+		while (true)
+		{
+			AccTime += m_pTimer->GetElapsedTime();
+			if (PeekMessage(&m_Msg, NULL, 0, 0, PM_REMOVE))
+			{
+				if (m_Msg.message == WM_QUIT) break;
+				TranslateMessage(&m_Msg);
+				DispatchMessage(&m_Msg);
+			}
+			else
+			{
+				if (AccTime > frameTime)
+				{
+					CalcProc(AccTime);
+					DrawProc(AccTime);
+					AccTime = 0.f;
+				}
+			}
+		}
 	}
 
 	BOOL MainWindow::InitWindow()
@@ -73,6 +109,7 @@ namespace DXMapEditer
 		}
 	}
 
+	// 프로그램 시작에 등장하여 세팅 값을 얻어오는 프로시져.
 	INT_PTR CALLBACK InitDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	{
 		switch (iMessage)
