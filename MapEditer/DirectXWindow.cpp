@@ -20,4 +20,13 @@ namespace DXMapEditer
 	{
 		MoveWindow(_this, 0, 0, 800, 600, TRUE);
 	}
+
+	void DirectXWindow::SetGridVariables(int mapWidth, int mapHeight, int gridWidth, int gridHeight)
+	{
+		_MapWidth = mapWidth;
+		_MapHeight = mapHeight;
+		_GridWidth = gridWidth;
+		_GridHeight = gridHeight;
+	}
+
 }

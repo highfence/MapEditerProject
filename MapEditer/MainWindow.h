@@ -3,6 +3,7 @@
 
 class MyTimer;
 class DirectXWindow;
+class OptionWindow;
 
 namespace DXMapEditer
 {
@@ -15,12 +16,6 @@ namespace DXMapEditer
 		~MainWindow();
 
 		void Run();
-
-		/* Getter, Setter */
-		void SetMapWidth(int mapWidth) { _MapWidth = mapWidth; };
-		void SetMapHeight(int mapHeight) { _MapHeight = mapHeight; };
-		void SetGridWidth(int gridWidth) { _GridWidth = gridWidth; };
-		void SetGridHeight(int gridHeight) { _GridHeight = gridHeight; };
 
 		// Message Procedure For interesting Messages
 		INT_PTR CALLBACK MainWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
@@ -47,15 +42,10 @@ namespace DXMapEditer
 		int _ClientWidth = 1100;
 		int _ClientHeight = 600;
 
-		// MapEditer Variable
-		int _MapWidth = 300;
-		int _MapHeight = 300;
-		int _GridWidth = 150;
-		int _GridHeight = 150;
-
 		// Common Variable
 		std::unique_ptr<MyTimer> _pTimer;
 		std::unique_ptr<DirectXWindow> _pDXWindow;
+		std::unique_ptr<OptionWindow> _pOptionWindow;
 	};
 
 	// Pointer directing Main Window Instance (For WndProc Func)
@@ -64,5 +54,4 @@ namespace DXMapEditer
 	// Message Handle Procedure
 	INT_PTR CALLBACK InitDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
-	LRESULT CALLBACK OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 }

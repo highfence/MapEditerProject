@@ -1,8 +1,10 @@
 #include <Windows.h>
 #include <string>
+#include <CommCtrl.h>
 #include "resource.h"
 #include "MyTimer.h"
 #include "DirectXWindow.h"
+#include "OptionWindow.h"
 #include "MainWindow.h"
 
 namespace DXMapEditer
@@ -13,6 +15,7 @@ namespace DXMapEditer
 		_pTimer = std::make_unique<MyTimer>();
 		_pTimer->Init();
 		_pDXWindow = std::make_unique<DirectXWindow>();
+		_pOptionWindow = std::make_unique<OptionWindow>();
 
 		mainWindowHandler = this;
 
@@ -86,10 +89,7 @@ namespace DXMapEditer
 	{
 		if (DialogBox(_hInst, MAKEINTRESOURCE(INIT_DIALOG), _hWnd, InitDialogProc) == IDOK)
 		{
-			SetMapWidth(mapWidth);
-			SetMapHeight(mapHeight);
-			SetGridWidth(gridWidth);
-			SetGridHeight(gridHeight);
+			_pDXWindow->SetGridVariables(mapWidth, mapHeight, gridWidth, gridHeight);
 			InvalidateRect(_hWnd, NULL, TRUE);
 		}
 	}
@@ -97,23 +97,6 @@ namespace DXMapEditer
 	void MainWindow::makeWindows(HWND hWnd)
 	{
 #pragma region windows func
-
-		auto RegistOptionWindow = [this]()
-		{
-			WNDCLASS WndClass;
-			WndClass.cbClsExtra = 0;
-			WndClass.cbWndExtra = 0;
-			WndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-			WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-			WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-			WndClass.hInstance = _hInst;
-			WndClass.lpfnWndProc = OptionWindowProc;
-			WndClass.lpszClassName = L"Option Window";
-			WndClass.lpszMenuName = NULL;
-			WndClass.style = CS_HREDRAW | CS_VREDRAW;
-
-			if (!RegisterClass(&WndClass)) return;
-		};
 
 		auto RegistMapEditerWindow = [this]()
 		{
@@ -124,7 +107,7 @@ namespace DXMapEditer
 			WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 			WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 			WndClass.hInstance = _hInst;
-			WndClass.lpfnWndProc = OptionWindowProc;
+			WndClass.lpfnWndProc = WndProc;
 			WndClass.lpszClassName = L"MapEditer Window";
 			WndClass.lpszMenuName = NULL;
 			WndClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -134,14 +117,10 @@ namespace DXMapEditer
 
 #pragma endregion
 
-		RegistOptionWindow();
 		RegistMapEditerWindow();
 
-		_OptionWindow = CreateWindow(
-			TEXT("Option Window"), NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN,
-			0, 0, 0, 0, hWnd, (HMENU)0, _hInst, NULL);
-
 		_pDXWindow->CreateDXWindow(_hInst, hWnd);
+		_pOptionWindow->WindowSetting(_hInst, hWnd);
 	}
 
 	void MainWindow::calcProc(const float deltaTime)
@@ -229,9 +208,5 @@ namespace DXMapEditer
 		return (DefWindowProc(hWnd, iMessage, wParam, lParam));
 	}
 
-	// Option Window Message Procedure
-	LRESULT OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
-	{
-		return (DefWindowProc(hWnd, iMessage, wParam, lParam));
-	}
+
 }
