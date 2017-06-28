@@ -2,55 +2,56 @@
 #include <string>
 #include "resource.h"
 #include "MyTimer.h"
+#include "OptionWindow.h"
 #include "MainWindow.h"
 
 namespace DXMapEditer
 {
 	MainWindow::MainWindow(HINSTANCE hInstance, int nCmdShow)
+		: _hInst(hInstance), _CmdShow(nCmdShow)
 	{
-		m_hInst = hInstance;
-		m_CmdShow = nCmdShow;
+		_pTimer = std::make_unique<MyTimer>();
+		_pTimer->Init();
 
-		m_pTimer = std::make_unique<MyTimer>();
-		m_pTimer->Init();
+		_pOptWindow = std::make_unique<OptionWindow>(hInstance, nCmdShow);
 
-		GetInitSetting();
-		InitWindow();
+		getInitSetting();
+		initWindow();
 	}
 
 	MainWindow::~MainWindow()
 	{
-		DestroyWindow(m_hWnd);
+		DestroyWindow(_hWnd);
 	}
 
 	void MainWindow::Run()
 	{
 		const float frameTime = 1 / (float)60;
 		static float AccTime = 0;
-		m_pTimer->ProcessTime();
+		_pTimer->ProcessTime();
 
 		while (true)
 		{
-			AccTime += m_pTimer->GetElapsedTime();
-			if (PeekMessage(&m_Msg, NULL, 0, 0, PM_REMOVE))
+			AccTime += _pTimer->GetElapsedTime();
+			if (PeekMessage(&_Msg, NULL, 0, 0, PM_REMOVE))
 			{
-				if (m_Msg.message == WM_QUIT) break;
-				TranslateMessage(&m_Msg);
-				DispatchMessage(&m_Msg);
+				if (_Msg.message == WM_QUIT) break;
+				TranslateMessage(&_Msg);
+				DispatchMessage(&_Msg);
 			}
 			else
 			{
 				if (AccTime > frameTime)
 				{
-					CalcProc(AccTime);
-					DrawProc(AccTime);
+					calcProc(AccTime);
+					drawProc(AccTime);
 					AccTime = 0.f;
 				}
 			}
 		}
 	}
 
-	BOOL MainWindow::InitWindow()
+	BOOL MainWindow::initWindow()
 	{
 		WNDCLASS WndClass;
 		WndClass.cbClsExtra = 0;
@@ -58,20 +59,20 @@ namespace DXMapEditer
 		WndClass.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 		WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
 		WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-		WndClass.hInstance = m_hInst;
+		WndClass.hInstance = _hInst;
 		WndClass.lpfnWndProc = WndProc;
-		WndClass.lpszClassName = m_AppName;
+		WndClass.lpszClassName = _AppName;
 		WndClass.lpszMenuName = NULL;
 		WndClass.style = CS_HREDRAW | CS_VREDRAW;
 
 		if (!RegisterClass(&WndClass)) return false;
 
-		m_hWnd = CreateWindow(
-			m_AppName, m_AppName, WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT, m_ClientWidth, m_ClientHeight,
-			NULL, (HMENU)NULL, m_hInst, NULL);
+		_hWnd = CreateWindow(
+			_AppName, _AppName, WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT, CW_USEDEFAULT, _ClientWidth, _ClientHeight,
+			NULL, (HMENU)NULL, _hInst, NULL);
 
-		ShowWindow(m_hWnd, m_CmdShow);
+		ShowWindow(_hWnd, _CmdShow);
 		return true;
 	}
 
@@ -80,16 +81,24 @@ namespace DXMapEditer
 	static int gridWidth = 0;
 	static int gridHeight = 0;
 
-	void MainWindow::GetInitSetting()
+	void MainWindow::getInitSetting()
 	{
-		if (DialogBox(m_hInst, MAKEINTRESOURCE(INIT_DIALOG), m_hWnd, InitDialogProc) == IDOK)
+		if (DialogBox(_hInst, MAKEINTRESOURCE(INIT_DIALOG), _hWnd, InitDialogProc) == IDOK)
 		{
 			SetMapWidth(mapWidth);
 			SetMapHeight(mapHeight);
 			SetGridWidth(gridWidth);
 			SetGridHeight(gridHeight);
-			InvalidateRect(m_hWnd, NULL, TRUE);
+			InvalidateRect(_hWnd, NULL, TRUE);
 		}
+	}
+
+	void MainWindow::calcProc(const float deltaTime)
+	{
+	}
+
+	void MainWindow::drawProc(const float deltaTime)
+	{
 	}
 
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)

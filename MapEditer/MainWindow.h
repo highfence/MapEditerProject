@@ -2,6 +2,7 @@
 #include <memory>
 
 class MyTimer;
+class OptionWindow;
 
 namespace DXMapEditer
 {
@@ -16,38 +17,39 @@ namespace DXMapEditer
 		void Run();
 
 		/* Getter, Setter */
-		void SetMapWidth(int mapWidth) { m_MapWidth = mapWidth; };
-		void SetMapHeight(int mapHeight) { m_MapHeight = mapHeight; };
-		void SetGridWidth(int gridWidth) { m_GridWidth = gridWidth; };
-		void SetGridHeight(int gridHeight) { m_GridHeight = gridHeight; };
+		void SetMapWidth(int mapWidth) { _MapWidth = mapWidth; };
+		void SetMapHeight(int mapHeight) { _MapHeight = mapHeight; };
+		void SetGridWidth(int gridWidth) { _GridWidth = gridWidth; };
+		void SetGridHeight(int gridHeight) { _GridHeight = gridHeight; };
 
 	private :
 
-		BOOL InitWindow();
-		void GetInitSetting();
+		BOOL initWindow();
+		void getInitSetting();
 
-		void CalcProc(const float deltaTime);
-		void DrawProc(const float deltaTime);
+		void calcProc(const float deltaTime);
+		void drawProc(const float deltaTime);
 
 	private :
 
 		// Window Variable
-		HINSTANCE m_hInst;
-		int m_CmdShow = 0;
-		LPCTSTR m_AppName = L"DirectX Map Editer v1.0.0";
-		MSG m_Msg;
-		HWND m_hWnd;
-		int m_ClientWidth = 1100;
-		int m_ClientHeight = 600;
+		HINSTANCE _hInst;
+		int _CmdShow = 0;
+		LPCTSTR _AppName = L"DirectX Map Editer v1.0.0";
+		MSG _Msg;
+		HWND _hWnd;
+		int _ClientWidth = 1100;
+		int _ClientHeight = 600;
 
 		// MapEditer Variable
-		int m_MapWidth = 300;
-		int m_MapHeight = 300;
-		int m_GridWidth = 150;
-		int m_GridHeight = 150;
+		int _MapWidth = 300;
+		int _MapHeight = 300;
+		int _GridWidth = 150;
+		int _GridHeight = 150;
 
 		// Common Variable
-		std::unique_ptr<MyTimer> m_pTimer;
+		std::unique_ptr<MyTimer> _pTimer;
+		std::unique_ptr<OptionWindow> _pOptWindow;
 
 	};
 

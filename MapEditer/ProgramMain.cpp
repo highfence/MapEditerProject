@@ -3,7 +3,10 @@
 
 int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE prevhInstance, LPSTR lpszCmdParam, int nCmdShow)
 {
-	auto mainWindow = DXMapEditer::MainWindow(hInstance, nCmdShow);
+	auto mainWindow = new DXMapEditer::MainWindow(hInstance, nCmdShow);
 
+	mainWindow->Run();
+
+	delete mainWindow;
 	return 0;
 }
