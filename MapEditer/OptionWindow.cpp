@@ -28,6 +28,11 @@ namespace DXMapEditer
 			0, 0, 0, 0, hWnd, (HMENU)0, hInst, NULL);
 	}
 
+	void OptionWindow::MoveOptionWindow()
+	{
+		MoveWindow(_hThis, 800, 0, 300, 600, TRUE);
+	}
+
 	LRESULT OptionWindow::OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	{
 		return (DefWindowProc(hWnd, iMessage, wParam, lParam));

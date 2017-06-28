@@ -96,29 +96,6 @@ namespace DXMapEditer
 
 	void MainWindow::makeWindows(HWND hWnd)
 	{
-#pragma region windows func
-
-		auto RegistMapEditerWindow = [this]()
-		{
-			WNDCLASS WndClass;
-			WndClass.cbClsExtra = 0;
-			WndClass.cbWndExtra = 0;
-			WndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
-			WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
-			WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
-			WndClass.hInstance = _hInst;
-			WndClass.lpfnWndProc = WndProc;
-			WndClass.lpszClassName = L"MapEditer Window";
-			WndClass.lpszMenuName = NULL;
-			WndClass.style = CS_HREDRAW | CS_VREDRAW;
-
-			if (!RegisterClass(&WndClass)) return;
-		};
-
-#pragma endregion
-
-		RegistMapEditerWindow();
-
 		_pDXWindow->CreateDXWindow(_hInst, hWnd);
 		_pOptionWindow->WindowSetting(_hInst, hWnd);
 	}

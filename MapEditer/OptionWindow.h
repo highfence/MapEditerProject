@@ -10,6 +10,7 @@ namespace DXMapEditer
 		~OptionWindow();
 
 		void WindowSetting(HINSTANCE hInst, HWND hWnd);
+		void MoveOptionWindow();
 
 	private :
 

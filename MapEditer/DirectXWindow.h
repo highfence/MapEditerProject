@@ -14,11 +14,13 @@ namespace DXMapEditer
 
 	private :
 
+		// Handling DirectX Window Messages
+		static LRESULT CALLBACK DirectXWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 	private :
 
 		// Window Variable
-		HWND _this;
+		HWND _hThis;
 		
 		// Grid Variable
 		int _MapWidth = 0;
