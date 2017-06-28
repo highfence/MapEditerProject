@@ -2,7 +2,6 @@
 #include <memory>
 
 class MyTimer;
-class OptionWindow;
 
 namespace DXMapEditer
 {
@@ -29,7 +28,7 @@ namespace DXMapEditer
 
 		BOOL initWindow();
 		void getInitSetting();
-		void makeWindows();
+		void makeWindows(HWND hWnd);
 
 		void calcProc(const float deltaTime);
 		void drawProc(const float deltaTime);
@@ -54,8 +53,6 @@ namespace DXMapEditer
 
 		// Common Variable
 		std::unique_ptr<MyTimer> _pTimer;
-		std::unique_ptr<OptionWindow> _pOptWindow;
-
 	};
 
 	// Pointer directing Main Window Instance (For WndProc Func)
@@ -64,5 +61,5 @@ namespace DXMapEditer
 	// Message Handle Procedure
 	INT_PTR CALLBACK InitDialogProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
-	//LRESULT CALLBACK OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+	LRESULT CALLBACK OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 }

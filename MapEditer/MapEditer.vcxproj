@@ -183,13 +183,11 @@
   <ItemGroup>
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MyTimer.cpp" />
-    <ClCompile Include="OptionWindow.cpp" />
     <ClCompile Include="ProgramMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="MyTimer.h" />
-    <ClInclude Include="OptionWindow.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

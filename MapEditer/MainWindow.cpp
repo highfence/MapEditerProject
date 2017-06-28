@@ -2,7 +2,6 @@
 #include <string>
 #include "resource.h"
 #include "MyTimer.h"
-#include "OptionWindow.h"
 #include "MainWindow.h"
 
 namespace DXMapEditer
@@ -13,13 +12,10 @@ namespace DXMapEditer
 		_pTimer = std::make_unique<MyTimer>();
 		_pTimer->Init();
 
-		_pOptWindow = std::make_unique<OptionWindow>(hInstance, nCmdShow);
-
 		mainWindowHandler = this;
 
 		getInitSetting();
 		initWindow();
-		makeWindows();
 	}
 
 	MainWindow::~MainWindow()
@@ -96,7 +92,7 @@ namespace DXMapEditer
 		}
 	}
 
-	void MainWindow::makeWindows()
+	void MainWindow::makeWindows(HWND hWnd)
 	{
 #pragma region windows func
 
@@ -121,6 +117,9 @@ namespace DXMapEditer
 
 		RegistOptionWindow();
 
+		_OptionWindow = CreateWindow(
+			TEXT("Option Window"), NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN,
+			0, 0, 0, 0, hWnd, (HMENU)0, _hInst, NULL);
 	}
 
 	void MainWindow::calcProc(const float deltaTime)
@@ -191,9 +190,7 @@ namespace DXMapEditer
 		{
 		case WM_CREATE :
 		{
-			_OptionWindow = CreateWindow(
-				TEXT("Option Window"), NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN,
-				0, 0, 0, 0, hWnd, (HMENU)0, _hInst, NULL);
+			makeWindows(hWnd);
 			break;
 		}
 
@@ -209,9 +206,9 @@ namespace DXMapEditer
 		return (DefWindowProc(hWnd, iMessage, wParam, lParam));
 	}
 
-	//// Option Window Message Procedure
-	//LRESULT OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
-	//{
-	//	return (DefWindowProc(hWnd, iMessage, wParam, lParam));
-	//}
+	// Option Window Message Procedure
+	LRESULT OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	{
+		return (DefWindowProc(hWnd, iMessage, wParam, lParam));
+	}
 }
