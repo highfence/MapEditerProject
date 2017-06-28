@@ -15,8 +15,11 @@ namespace DXMapEditer
 
 		_pOptWindow = std::make_unique<OptionWindow>(hInstance, nCmdShow);
 
+		mainWindowHandler = this;
+
 		getInitSetting();
 		initWindow();
+		makeWindows();
 	}
 
 	MainWindow::~MainWindow()
@@ -93,6 +96,33 @@ namespace DXMapEditer
 		}
 	}
 
+	void MainWindow::makeWindows()
+	{
+#pragma region windows func
+
+		auto RegistOptionWindow = [this]()
+		{
+			WNDCLASS WndClass;
+			WndClass.cbClsExtra = 0;
+			WndClass.cbWndExtra = 0;
+			WndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+			WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+			WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+			WndClass.hInstance = _hInst;
+			WndClass.lpfnWndProc = OptionWindowProc;
+			WndClass.lpszClassName = L"Option Window";
+			WndClass.lpszMenuName = NULL;
+			WndClass.style = CS_HREDRAW | CS_VREDRAW;
+
+			if (!RegisterClass(&WndClass)) return;
+		};
+
+#pragma endregion
+
+		RegistOptionWindow();
+
+	}
+
 	void MainWindow::calcProc(const float deltaTime)
 	{
 	}
@@ -114,7 +144,7 @@ namespace DXMapEditer
 			return 0;
 
 		default:
-			DefWindowProc(hWnd, iMessage, wParam, lParam);
+			return DXMapEditer::mainWindowHandler->MainWindowProc(hWnd, iMessage, wParam, lParam);
 		}
 	}
 
@@ -154,4 +184,34 @@ namespace DXMapEditer
 
 		return FALSE;
 	}
+
+	INT_PTR MainWindow::MainWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	{
+		switch (iMessage)
+		{
+		case WM_CREATE :
+		{
+			_OptionWindow = CreateWindow(
+				TEXT("Option Window"), NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN,
+				0, 0, 0, 0, hWnd, (HMENU)0, _hInst, NULL);
+			break;
+		}
+
+		// If Window was moved,
+		case WM_SIZE :
+			if (wParam != SIZE_MINIMIZED)
+			{
+				MoveWindow(_OptionWindow, 800, 0, 300, 600, TRUE);
+			}
+			break;
+		}
+
+		return (DefWindowProc(hWnd, iMessage, wParam, lParam));
+	}
+
+	//// Option Window Message Procedure
+	//LRESULT OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	//{
+	//	return (DefWindowProc(hWnd, iMessage, wParam, lParam));
+	//}
 }
