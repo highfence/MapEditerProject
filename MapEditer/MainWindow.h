@@ -2,6 +2,7 @@
 #include <memory>
 
 class MyTimer;
+class DirectXWindow;
 
 namespace DXMapEditer
 {
@@ -42,6 +43,7 @@ namespace DXMapEditer
 		MSG _Msg;
 		HWND _hWnd;
 		HWND _OptionWindow;
+
 		int _ClientWidth = 1100;
 		int _ClientHeight = 600;
 
@@ -53,6 +55,7 @@ namespace DXMapEditer
 
 		// Common Variable
 		std::unique_ptr<MyTimer> _pTimer;
+		std::unique_ptr<DirectXWindow> _pDXWindow;
 	};
 
 	// Pointer directing Main Window Instance (For WndProc Func)

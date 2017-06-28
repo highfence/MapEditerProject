@@ -2,6 +2,7 @@
 #include <string>
 #include "resource.h"
 #include "MyTimer.h"
+#include "DirectXWindow.h"
 #include "MainWindow.h"
 
 namespace DXMapEditer
@@ -11,6 +12,7 @@ namespace DXMapEditer
 	{
 		_pTimer = std::make_unique<MyTimer>();
 		_pTimer->Init();
+		_pDXWindow = std::make_unique<DirectXWindow>();
 
 		mainWindowHandler = this;
 
@@ -113,13 +115,33 @@ namespace DXMapEditer
 			if (!RegisterClass(&WndClass)) return;
 		};
 
+		auto RegistMapEditerWindow = [this]()
+		{
+			WNDCLASS WndClass;
+			WndClass.cbClsExtra = 0;
+			WndClass.cbWndExtra = 0;
+			WndClass.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH);
+			WndClass.hCursor = LoadCursor(NULL, IDC_ARROW);
+			WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+			WndClass.hInstance = _hInst;
+			WndClass.lpfnWndProc = OptionWindowProc;
+			WndClass.lpszClassName = L"MapEditer Window";
+			WndClass.lpszMenuName = NULL;
+			WndClass.style = CS_HREDRAW | CS_VREDRAW;
+
+			if (!RegisterClass(&WndClass)) return;
+		};
+
 #pragma endregion
 
 		RegistOptionWindow();
+		RegistMapEditerWindow();
 
 		_OptionWindow = CreateWindow(
 			TEXT("Option Window"), NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN,
 			0, 0, 0, 0, hWnd, (HMENU)0, _hInst, NULL);
+
+		_pDXWindow->CreateDXWindow(_hInst, hWnd);
 	}
 
 	void MainWindow::calcProc(const float deltaTime)
@@ -199,6 +221,7 @@ namespace DXMapEditer
 			if (wParam != SIZE_MINIMIZED)
 			{
 				MoveWindow(_OptionWindow, 800, 0, 300, 600, TRUE);
+				_pDXWindow->MoveDXWindow();
 			}
 			break;
 		}

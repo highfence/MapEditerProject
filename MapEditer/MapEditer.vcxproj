@@ -181,11 +181,13 @@
     <ResourceCompile Include="MapEditer.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="DirectXWindow.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MyTimer.cpp" />
     <ClCompile Include="ProgramMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DirectXWindow.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="MyTimer.h" />
     <ClInclude Include="resource.h" />
