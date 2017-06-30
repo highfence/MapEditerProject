@@ -43,8 +43,12 @@ namespace DXMapEditer
 	{
 		CreateWindow(L"button", L"Camera", WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
 			5, 0, 275, 110, hWnd, (HMENU)0, _hInst, NULL);
+
 		CreateWindow(L"static", L"Move Speed", WS_CHILD | WS_VISIBLE,
 			20, 20, 100, 25, hWnd, (HMENU)-1, _hInst, NULL);
+
+		_MoveSpeedEdit = CreateWindow(TEXT("edit"), TEXT("300"), WS_CHILD | WS_VISIBLE | WS_BORDER,
+			125, 20, 50, 25, hWnd, (HMENU)1, _hInst, NULL);
 	}
 
 	LRESULT OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)

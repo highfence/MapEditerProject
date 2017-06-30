@@ -21,6 +21,10 @@ namespace DXMapEditer
 		HINSTANCE _hInst;
 		HWND _ParentHandle;
 		HWND _hThis;
+
+		// Camera Option Handles
+		HWND _MoveSpeedEdit;
+
 	};
 
 	static OptionWindow* optionWindowHandle = nullptr;
