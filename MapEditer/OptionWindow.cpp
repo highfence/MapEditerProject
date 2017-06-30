@@ -7,8 +7,11 @@ namespace DXMapEditer
 	{
 	}
 
-	void OptionWindow::WindowSetting(HINSTANCE hInst, HWND hWnd)
+	void OptionWindow::CreateOptionWindow(HINSTANCE hInst, HWND hWnd)
 	{
+		_hInst = hInst;
+		_ParentHandle = hWnd;
+
 		WNDCLASS WndClass;
 		WndClass.cbClsExtra = 0;
 		WndClass.cbWndExtra = 0;
@@ -22,10 +25,13 @@ namespace DXMapEditer
 		WndClass.style = CS_HREDRAW | CS_VREDRAW;
 
 		if (!RegisterClass(&WndClass)) return;
+		optionWindowHandle = this;
 
 		_hThis = CreateWindow(
 			TEXT("Option Window"), NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN,
 			0, 0, 0, 0, hWnd, (HMENU)0, hInst, NULL);
+
+		//CreateWindows();
 	}
 
 	void OptionWindow::MoveOptionWindow()
@@ -33,8 +39,27 @@ namespace DXMapEditer
 		MoveWindow(_hThis, 800, 0, 300, 600, TRUE);
 	}
 
-	LRESULT OptionWindow::OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	void OptionWindow::CreateWindows(HWND hWnd)
 	{
+		CreateWindow(L"button", L"Camera", WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
+			5, 0, 275, 110, hWnd, (HMENU)0, _hInst, NULL);
+		CreateWindow(L"static", L"Move Speed", WS_CHILD | WS_VISIBLE,
+			20, 20, 100, 25, hWnd, (HMENU)-1, _hInst, NULL);
+	}
+
+	LRESULT OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	{
+		switch (iMessage)
+		{
+		case WM_CREATE :
+		{
+			// TODO 여기서부터
+			optionWindowHandle->CreateWindows(hWnd);
+			break;
+		}
+
+		}
+
 		return (DefWindowProc(hWnd, iMessage, wParam, lParam));
 	}
 }

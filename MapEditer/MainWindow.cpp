@@ -1,6 +1,5 @@
 #include <Windows.h>
 #include <string>
-#include <CommCtrl.h>
 #include "resource.h"
 #include "MyTimer.h"
 #include "DirectXWindow.h"
@@ -87,8 +86,10 @@ namespace DXMapEditer
 
 	void MainWindow::getInitSetting()
 	{
+		// Popup Dialog Box for get input
 		if (DialogBox(_hInst, MAKEINTRESOURCE(INIT_DIALOG), _hWnd, InitDialogProc) == IDOK)
 		{
+			// Deliver input value
 			_pDXWindow->SetGridVariables(mapWidth, mapHeight, gridWidth, gridHeight);
 			InvalidateRect(_hWnd, NULL, TRUE);
 		}
@@ -97,7 +98,7 @@ namespace DXMapEditer
 	void MainWindow::makeWindows(HWND hWnd)
 	{
 		_pDXWindow->CreateDXWindow(_hInst, hWnd);
-		_pOptionWindow->WindowSetting(_hInst, hWnd);
+		_pOptionWindow->CreateOptionWindow(_hInst, hWnd);
 	}
 
 	void MainWindow::calcProc(const float deltaTime)
@@ -176,8 +177,8 @@ namespace DXMapEditer
 		case WM_SIZE :
 			if (wParam != SIZE_MINIMIZED)
 			{
-				MoveWindow(_OptionWindow, 800, 0, 300, 600, TRUE);
 				_pDXWindow->MoveDXWindow();
+				_pOptionWindow->MoveOptionWindow();
 			}
 			break;
 		}

@@ -9,17 +9,22 @@ namespace DXMapEditer
 		OptionWindow() = default;
 		~OptionWindow();
 
-		void WindowSetting(HINSTANCE hInst, HWND hWnd);
+		void CreateOptionWindow(HINSTANCE hInst, HWND hWnd);
 		void MoveOptionWindow();
+		void CreateWindows(HWND hWnd);
 
 	private :
 
-		// Option Window Message Procedure
-		static LRESULT CALLBACK OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 
 	private :
 
+		HINSTANCE _hInst;
+		HWND _ParentHandle;
 		HWND _hThis;
 	};
 
+	static OptionWindow* optionWindowHandle = nullptr;
+
+	// Option Window Message Procedure
+	LRESULT CALLBACK OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 }
