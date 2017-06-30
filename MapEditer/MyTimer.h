@@ -11,7 +11,7 @@ public :
 
 	inline float GetElapsedTime() const
 	{
-		return m_fElapsedTime;
+		return _fElapsedTime;
 	};
 
 	void Init();
@@ -19,8 +19,8 @@ public :
 
 private :
 
-	bool		m_bUseQPF;
-	float		m_fElapsedTime;
-	LONGLONG	m_llQPFTicksPerSec;
-	LONGLONG	m_llLastElapsedTime;
+	bool		_bUseQPF;
+	float		_fElapsedTime;
+	LONGLONG	_llQPFTicksPerSec;
+	LONGLONG	_llLastElapsedTime;
 };
