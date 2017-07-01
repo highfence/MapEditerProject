@@ -11,6 +11,7 @@
 #define GRID_INIT_BUTTON 8
 #define SAVE_BUTTON 9
 #define LOAD_BUTTON 10
+#define TEXTURE_BUTTON 11
 
 namespace DXMapEditer
 {
@@ -106,13 +107,16 @@ namespace DXMapEditer
 		auto CreateDataTab = [this](HWND hWnd)
 		{
 			CreateWindow(TEXT("button"), TEXT("Data"), WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
-				5, 280, 275, 55, hWnd, (HMENU)0, _hInst, NULL);
+				5, 280, 275, 85, hWnd, (HMENU)0, _hInst, NULL);
 
 			CreateWindow(TEXT("button"), TEXT("SAVE"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
 				15, 300, 125, 25, hWnd, (HMENU)GRID_INIT_BUTTON, _hInst, NULL);
 			
 			CreateWindow(TEXT("button"), TEXT("LOAD"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
 				145, 300, 125, 25, hWnd, (HMENU)GRID_INIT_BUTTON, _hInst, NULL);
+
+			CreateWindow(TEXT("button"), TEXT("Texture Select"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+				15, 330, 255, 25, hWnd, (HMENU)TEXTURE_BUTTON, _hInst, NULL);
 		};
 
 #pragma endregion
