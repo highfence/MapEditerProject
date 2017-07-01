@@ -9,6 +9,8 @@
 #define STANDARDIZATION_RADIO_BUTTON 6
 #define RANGE_VALUE_EDIT 7
 #define GRID_INIT_BUTTON 8
+#define SAVE_BUTTON 9
+#define LOAD_BUTTON 10
 
 namespace DXMapEditer
 {
@@ -49,9 +51,9 @@ namespace DXMapEditer
 	{
 #pragma region Create Tab Functions
 
+		// Make Camera Tab
 		auto CreateCameraTab = [this](HWND hWnd)
 		{
-			// Make Camera Tab
 			CreateWindow(TEXT("button"), TEXT("Camera"), WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
 				5, 0, 275, 90, hWnd, (HMENU)0, _hInst, NULL);
 
@@ -69,9 +71,9 @@ namespace DXMapEditer
 				15, 50, 155, 25, hWnd, (HMENU)-1, _hInst, NULL);
 		};
 
+		// Make Picking Tab
 		auto CreatePickingTab = [this](HWND hWnd)
 		{
-			// Make Picking Tab
 			CreateWindow(TEXT("button"), TEXT("Picking"), WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
 				5, 95, 275, 180, hWnd, (HMENU)0, _hInst, NULL);
 
@@ -98,13 +100,26 @@ namespace DXMapEditer
 
 			CreateWindow(TEXT("button"), TEXT("Gird Initialize"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
 				15, 240, 255, 25, hWnd, (HMENU)GRID_INIT_BUTTON, _hInst, NULL);
+		};
+
+		// Make Data Tab
+		auto CreateDataTab = [this](HWND hWnd)
+		{
+			CreateWindow(TEXT("button"), TEXT("Data"), WS_CHILD | WS_VISIBLE | BS_GROUPBOX,
+				5, 280, 275, 55, hWnd, (HMENU)0, _hInst, NULL);
+
+			CreateWindow(TEXT("button"), TEXT("SAVE"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+				15, 300, 125, 25, hWnd, (HMENU)GRID_INIT_BUTTON, _hInst, NULL);
 			
+			CreateWindow(TEXT("button"), TEXT("LOAD"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+				145, 300, 125, 25, hWnd, (HMENU)GRID_INIT_BUTTON, _hInst, NULL);
 		};
 
 #pragma endregion
 
 		CreateCameraTab(hWnd);
 		CreatePickingTab(hWnd);
+		CreateDataTab(hWnd);
 
 	}
 
