@@ -24,6 +24,14 @@ namespace DXMapEditer
 
 		// Camera Option Handles
 		HWND _MoveSpeedEdit;
+		HWND _WireFrameRadioButton;
+		bool _WireFramed = false;
+		
+		// Picking Option Handles
+		HWND _MoveButton;
+		HWND _RiseButton;
+		HWND _DownButton;
+		HWND _StandardizationButton;
 
 	};
 
