@@ -7,6 +7,8 @@
 #define RISE_RADIO_BUTTON 4
 #define DOWN_RADIO_BUTTON 5
 #define STANDARDIZATION_RADIO_BUTTON 6
+#define RANGE_VALUE_EDIT 7
+#define GRID_INIT_BUTTON 8
 
 namespace DXMapEditer
 {
@@ -34,8 +36,7 @@ namespace DXMapEditer
 		if (!RegisterClass(&WndClass)) return;
 		optionWindowHandle = this;
 
-		_hThis = CreateWindow(
-			TEXT("Option Window"), NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN,
+		_hThis = CreateWindow(TEXT("Option Window"), NULL, WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN,
 			0, 0, 0, 0, hWnd, (HMENU)0, hInst, NULL);
 	}
 
@@ -89,6 +90,15 @@ namespace DXMapEditer
 
 			CheckRadioButton(hWnd, MOVE_RADIO_BUTTON, STANDARDIZATION_RADIO_BUTTON, MOVE_RADIO_BUTTON);
 
+			CreateWindow(TEXT("static"), TEXT(" Range"), WS_CHILD | WS_VISIBLE,
+				120, 120, 55, 25, hWnd, (HMENU)-1, _hInst, NULL);
+
+			_RangeEdit = CreateWindow(TEXT("edit"), TEXT("15"), WS_CHILD | WS_VISIBLE | WS_BORDER,
+				180, 120, 90, 25, hWnd, (HMENU)RANGE_VALUE_EDIT, _hInst, NULL);
+
+			CreateWindow(TEXT("button"), TEXT("Gird Initialize"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+				15, 240, 255, 25, hWnd, (HMENU)GRID_INIT_BUTTON, _hInst, NULL);
+			
 		};
 
 #pragma endregion

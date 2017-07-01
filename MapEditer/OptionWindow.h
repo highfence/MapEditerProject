@@ -32,6 +32,7 @@ namespace DXMapEditer
 		HWND _RiseButton;
 		HWND _DownButton;
 		HWND _StandardizationButton;
+		HWND _RangeEdit;
 
 	};
 
