@@ -4,7 +4,7 @@
 
 #include "Camera.h"
 
-namespace DirectXFramework
+namespace DXMapEditer
 {
 	Camera::Camera()
 		: m_Position(0.0f, 0.0f, 0.0f),

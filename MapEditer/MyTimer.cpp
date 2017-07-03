@@ -1,45 +1,48 @@
 #include "stdafx.h"
 #include "MyTimer.h"
 
-MyTimer::MyTimer(void) : _bUseQPF(false)
-, _fElapsedTime(0.f)
-, _llQPFTicksPerSec(0)
-, _llLastElapsedTime(0)
+namespace DXMapEditer
 {
-}
-
-MyTimer::~MyTimer(void)
-{
-}
-
-void MyTimer::Init()
-{
-	LARGE_INTEGER qwTicksPerSec, qwTime;
-
-	_bUseQPF = (bool)(QueryPerformanceFrequency(
-		&qwTicksPerSec) != 0);
-
-	if (!_bUseQPF)	return;
-
-	_llQPFTicksPerSec = qwTicksPerSec.QuadPart;
-
-	QueryPerformanceCounter(&qwTime);
-	_llLastElapsedTime = qwTime.QuadPart;
-}
-
-void MyTimer::ProcessTime()
-{
-	if (!_bUseQPF)
+	MyTimer::MyTimer(void) : _bUseQPF(false)
+		, _fElapsedTime(0.f)
+		, _llQPFTicksPerSec(0)
+		, _llLastElapsedTime(0)
 	{
-		return;
 	}
 
-	LARGE_INTEGER qwTime;
-	QueryPerformanceCounter(&qwTime);
+	MyTimer::~MyTimer(void)
+	{
+	}
 
-	_fElapsedTime = (float)
-		((double)(qwTime.QuadPart - _llLastElapsedTime)
-			/ (double)_llQPFTicksPerSec);
+	void MyTimer::Init()
+	{
+		LARGE_INTEGER qwTicksPerSec, qwTime;
 
-	_llLastElapsedTime = qwTime.QuadPart;
+		_bUseQPF = (bool)(QueryPerformanceFrequency(
+			&qwTicksPerSec) != 0);
+
+		if (!_bUseQPF)	return;
+
+		_llQPFTicksPerSec = qwTicksPerSec.QuadPart;
+
+		QueryPerformanceCounter(&qwTime);
+		_llLastElapsedTime = qwTime.QuadPart;
+	}
+
+	void MyTimer::ProcessTime()
+	{
+		if (!_bUseQPF)
+		{
+			return;
+		}
+
+		LARGE_INTEGER qwTime;
+		QueryPerformanceCounter(&qwTime);
+
+		_fElapsedTime = (float)
+			((double)(qwTime.QuadPart - _llLastElapsedTime)
+				/ (double)_llQPFTicksPerSec);
+
+		_llLastElapsedTime = qwTime.QuadPart;
+	}
 }

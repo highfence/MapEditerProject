@@ -1,4 +1,8 @@
 #pragma once
+
+#include <vector>
+
+#include <DirectXMath.h>
 #include <d3d11.h>
 #include <d3dx11effect.h>
 #include <d3dCompiler.h>
@@ -7,10 +11,17 @@
 #pragma comment(lib, "Effects11d.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
-class MeshData;
 
 namespace DXMapEditer
 {
+	class MeshData;
+	class Camera;
+	class MyTimer;
+	class InputLayer;
+
+	using XMFLOAT4 = DirectX::XMFLOAT4;
+	using XMMATRIX = DirectX::XMMATRIX;
+
 	class DirectXWindow
 	{
 	public :
@@ -21,10 +32,12 @@ namespace DXMapEditer
 		void MoveDXWindow();
 		void SetGridVariables(int mapWidth, int mapHeight, int gridWidth, int gridHeight);
 
-	private :
+		void CalcProc(const float deltaTime);
+		void DrawProc(const float deltaTime);
 
-		// Handling DirectX Window Messages
-		static LRESULT CALLBACK DirectXWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+		LRESULT CALLBACK MessageHandler(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+		
+	private :
 
 		// DirectX Fuctions
 		bool CreateDeviceAndSwapChain();
@@ -35,12 +48,31 @@ namespace DXMapEditer
 		bool BuildGeometryBuffers();
 		bool CreateConstantBuffer();
 		bool CreateRenderState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode);
+		void LoadTexture();
 
 		void CleanupDevice();
+		void CalculateMatrixForHeightMap(const float deltaTime);
+		void GeometryHeightChange(int inputKey);
+		XMFLOAT4 GetColorByHeight(float height);
+		std::vector<int> GetSelectRange();
+		void Pick(int sx, int sy);
+
+		// InputFunctions
+		void OnKeyboardInput(float deltaTime);
+		void OnMouseDown(WPARAM btnState, int x, int y);
+		void OnMouseUp(WPARAM btnState, int x, int y);
+		void OnMouseMove(WPARAM btnState, int x, int y);
 
 	private :
 
+		InputLayer* m_pInputLayer = nullptr;
+		Camera*		m_pCamera = nullptr;
+		POINT m_LastMousePos;
+		float m_SelectRange = 25.f;
+		const float m_ChangeDelta = 0.1f;
+
 		// Window Variable
+		HWND _hWnd;
 		HWND _hThis;
 		int  _ClientWidth  = 800;
 		int  _ClientHeight = 600;
@@ -71,7 +103,24 @@ namespace DXMapEditer
 
 		ID3D11InputLayout*        m_pVertexLayout = nullptr;
 		ID3D11RasterizerState*	  m_pSolidRS = nullptr;
+		ID3D11ShaderResourceView* m_pTextureRV = nullptr;
+		ID3D11SamplerState*		  m_pSamplerLinear = nullptr;
+
+		XMMATRIX    m_World;
+		XMMATRIX    m_View;
+		XMMATRIX    m_Projection;
+		bool		m_IsDrawWireFrame = false;
+
+		/* Picking */
+		XMFLOAT4 m_LightDirection = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
+		XMFLOAT4 m_LightColor = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
+		UINT	 m_PickedTriangle = -1;
+
 		// Common Variable
 	};
 
+	static DirectXWindow * dxWindowHandler = nullptr;
+
+	// Handling DirectX Window Messages
+	LRESULT CALLBACK DirectXWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
 }

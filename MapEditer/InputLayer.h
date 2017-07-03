@@ -1,20 +1,24 @@
 #pragma once
+#include "KeyState.h"
 
-class InputLayer
+namespace DXMapEditer
 {
-public:
-	InputLayer();
-	InputLayer(const InputLayer&);
-	~InputLayer();
+	class InputLayer
+	{
+	public:
+		InputLayer();
+		InputLayer(const InputLayer&);
+		~InputLayer();
 
-	void Initialize();
+		void Initialize();
 
-	void Update();
+		void Update();
 
-	bool IsKeyDown(unsigned int);
+		bool IsKeyDown(unsigned int);
 
-private:
+	private:
 
-	BYTE m_ByKey[KeyNumber];
-	BYTE m_OldKey[KeyNumber];
-};
+		BYTE m_ByKey[KeyNumber];
+		BYTE m_OldKey[KeyNumber];
+	};
+}

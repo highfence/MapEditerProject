@@ -127,6 +127,7 @@
     </FxCompile>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
+      <EntryPointName>WinMain</EntryPointName>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -175,23 +176,29 @@
     </FxCompile>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
+      <EntryPointName>WinMain</EntryPointName>
     </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ResourceCompile Include="MapEditer.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DirectXWindow.cpp" />
     <ClCompile Include="GeometryGenerator.cpp" />
+    <ClCompile Include="InputLayer.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="MyTimer.cpp" />
     <ClCompile Include="OptionWindow.cpp" />
     <ClCompile Include="ProgramMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="Definition.h" />
     <ClInclude Include="DirectXWindow.h" />
     <ClInclude Include="GeometryGenerator.h" />
+    <ClInclude Include="InputLayer.h" />
+    <ClInclude Include="KeyState.h" />
     <ClInclude Include="MainWindow.h" />
     <ClInclude Include="MyTimer.h" />
     <ClInclude Include="OptionWindow.h" />

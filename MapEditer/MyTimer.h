@@ -2,25 +2,29 @@
 
 // 서형석 교수님의 MyTimer.
 
-class MyTimer
+namespace DXMapEditer
 {
-public :
-
-	MyTimer(void);
-	virtual ~MyTimer(void);
-
-	inline float GetElapsedTime() const
+	class MyTimer
 	{
-		return _fElapsedTime;
+	public:
+
+		MyTimer(void);
+		virtual ~MyTimer(void);
+
+		inline float GetElapsedTime() const
+		{
+			return _fElapsedTime;
+		};
+
+		void Init();
+		void ProcessTime();
+
+	private:
+
+		bool		_bUseQPF;
+		float		_fElapsedTime;
+		LONGLONG	_llQPFTicksPerSec;
+		LONGLONG	_llLastElapsedTime;
 	};
 
-	void Init();
-	void ProcessTime();
-
-private :
-
-	bool		_bUseQPF;
-	float		_fElapsedTime;
-	LONGLONG	_llQPFTicksPerSec;
-	LONGLONG	_llLastElapsedTime;
-};
+}

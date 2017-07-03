@@ -103,10 +103,12 @@ namespace DXMapEditer
 
 	void MainWindow::calcProc(const float deltaTime)
 	{
+		_pDXWindow.get()->CalcProc(deltaTime);
 	}
 
 	void MainWindow::drawProc(const float deltaTime)
 	{
+		_pDXWindow.get()->DrawProc(deltaTime);
 	}
 
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)

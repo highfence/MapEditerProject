@@ -10,7 +10,7 @@
 
 #pragma once
 
-namespace DirectXFramework
+namespace DXMapEditer 
 {
 #include <DirectXMath.h>
 	using namespace DirectX;
