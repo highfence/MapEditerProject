@@ -1,6 +1,6 @@
 #pragma once
 
-namespace DirectXFramework
+namespace DXMapEditer
 {
 	class GeometryGenerator
 	{

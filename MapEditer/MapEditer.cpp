@@ -472,7 +472,9 @@ namespace DirectXFramework
 		return true;
 	}
 
-	bool MapEditer::CreateRenderState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode)
+	bool MapEditer::CreateRenderState(
+		D3D11_FILL_MODE fillMode,
+		D3D11_CULL_MODE cullMode)
 	{
 		D3D11_RASTERIZER_DESC rasterizerDesc;
 		ZeroMemory(&rasterizerDesc, sizeof(D3D11_RASTERIZER_DESC));

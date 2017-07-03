@@ -3,7 +3,7 @@
 #include "xnaCollision.h"
 #include "GeometryGenerator.h"
 
-namespace DirectXFramework
+namespace DXMapEditer 
 {
 	MeshData GeometryGenerator::CreateGrid(
 		float width,

@@ -1,7 +1,8 @@
 #pragma once
+#include <vector>
 #include <DirectXMath.h>
 
-namespace DirectXFramework
+namespace DXMapEditer 
 {
 	using namespace DirectX;
 
