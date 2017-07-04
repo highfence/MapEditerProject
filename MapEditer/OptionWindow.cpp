@@ -213,6 +213,11 @@ namespace DXMapEditer
 			findFuncAndRun(OPT_WINDOW_FUNCTIONS::PICKING_STND_SELECTED, (int)OPT_WINDOW_FUNCTIONS::PICKING_STND_SELECTED);
 			break;
 		}
+		case GRID_INIT_BUTTON :
+		{
+			findFuncAndRun(OPT_WINDOW_FUNCTIONS::GRID_INITIALIZE_CLICKED, 0);
+			break;
+		}
 
 		}
 	}
