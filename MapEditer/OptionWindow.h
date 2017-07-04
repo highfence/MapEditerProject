@@ -12,6 +12,7 @@ namespace DXMapEditer
 		void CreateOptionWindow(HINSTANCE hInst, HWND hWnd);
 		void MoveOptionWindow();
 		void CreateWindows(HWND hWnd);
+		void CommandProc(WPARAM wParam, LPARAM lParam);
 
 	private :
 

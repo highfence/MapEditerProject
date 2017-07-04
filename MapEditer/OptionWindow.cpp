@@ -1,17 +1,17 @@
 #include <Windows.h>
 #include "OptionWindow.h"
 
-#define MOVE_SPEED_EDIT 1
-#define GO_TO_ORIGIN_BUTTON 2
-#define MOVE_RADIO_BUTTON 3
-#define RISE_RADIO_BUTTON 4
-#define DOWN_RADIO_BUTTON 5
-#define STANDARDIZATION_RADIO_BUTTON 6
-#define RANGE_VALUE_EDIT 7
-#define GRID_INIT_BUTTON 8
-#define SAVE_BUTTON 9
-#define LOAD_BUTTON 10
-#define TEXTURE_BUTTON 11
+#define MOVE_SPEED_EDIT 1001
+#define GO_TO_ORIGIN_BUTTON 1002
+#define MOVE_RADIO_BUTTON 2001
+#define RISE_RADIO_BUTTON 2002
+#define DOWN_RADIO_BUTTON 2003
+#define STANDARDIZATION_RADIO_BUTTON 2004
+#define RANGE_VALUE_EDIT 2005
+#define GRID_INIT_BUTTON 3001
+#define SAVE_BUTTON 4001
+#define LOAD_BUTTON 4002
+#define TEXTURE_BUTTON 4003
 
 namespace DXMapEditer
 {
@@ -61,7 +61,7 @@ namespace DXMapEditer
 			CreateWindow(TEXT("static"), TEXT("Move Speed"), WS_CHILD | WS_VISIBLE,
 				15, 20, 100, 25, hWnd, (HMENU)-1, _hInst, NULL);
 
-			_MoveSpeedEdit = CreateWindow(TEXT("edit"), TEXT("300"), WS_CHILD | WS_VISIBLE | WS_BORDER,
+			_MoveSpeedEdit = CreateWindow(TEXT("edit"), TEXT("100"), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
 				120, 20, 50, 25, hWnd, (HMENU)MOVE_SPEED_EDIT, _hInst, NULL);
 
 			CreateWindow(TEXT("button"), TEXT("Go To Origin"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
@@ -96,7 +96,7 @@ namespace DXMapEditer
 			CreateWindow(TEXT("static"), TEXT(" Range"), WS_CHILD | WS_VISIBLE,
 				120, 120, 55, 25, hWnd, (HMENU)-1, _hInst, NULL);
 
-			_RangeEdit = CreateWindow(TEXT("edit"), TEXT("15"), WS_CHILD | WS_VISIBLE | WS_BORDER,
+			_RangeEdit = CreateWindow(TEXT("edit"), TEXT("15"), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
 				180, 120, 90, 25, hWnd, (HMENU)RANGE_VALUE_EDIT, _hInst, NULL);
 
 			CreateWindow(TEXT("button"), TEXT("Gird Initialize"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
@@ -127,6 +127,23 @@ namespace DXMapEditer
 
 	}
 
+	void OptionWindow::CommandProc(WPARAM wParam, LPARAM lParam)
+	{
+		switch (LOWORD(wParam))
+		{
+		case MOVE_SPEED_EDIT :
+		{
+			switch (HIWORD(lParam))
+			{
+			case EN_CHANGE :
+				// TODO :: 여기서부터 시작.
+				break;
+			}
+		}
+
+		}
+	}
+
 	LRESULT OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	{
 		switch (iMessage)
@@ -134,6 +151,11 @@ namespace DXMapEditer
 		case WM_CREATE :
 		{
 			optionWindowHandle->CreateWindows(hWnd);
+			break;
+		}
+		case WM_COMMAND :
+		{
+			optionWindowHandle->CommandProc(wParam, lParam);
 			break;
 		}
 

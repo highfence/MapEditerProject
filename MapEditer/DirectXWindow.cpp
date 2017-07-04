@@ -401,8 +401,8 @@ namespace DXMapEditer
 
 		GeometryGenerator geoGen;
 
-		geoGen.CreateGrid(150.0f, 150.0f, 20, 20, *m_MeshData);
-		//geoGen.CreateGrid(_MapWidth, _MapHeight, _GridWidth, _GridHeight, *m_MeshData);
+		//geoGen.CreateGrid(150.0f, 150.0f, 20, 20, *m_MeshData);
+		geoGen.CreateGrid(_MapWidth, _MapHeight, _GridWidth, _GridHeight, *m_MeshData);
 		_GridIndexCount = m_MeshData->Indices32.size();
 
 		m_MeshData->Vertices.reserve(m_MeshData->Vertices.size());
