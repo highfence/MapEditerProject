@@ -32,7 +32,7 @@ namespace DXMapEditer
 {
 	DirectXWindow::~DirectXWindow()
 	{
-		CleanupDevice();
+		cleanupDevice();
 		DestroyWindow(_hThis);
 	}
 
@@ -43,10 +43,10 @@ namespace DXMapEditer
 
 		auto InnerClassInitialize = [this]()
 		{
-			m_pInputLayer = new InputLayer();
-			m_pInputLayer->Initialize();
+			_inputLayer = new InputLayer();
+			_inputLayer->Initialize();
 
-			m_pCamera = new Camera();
+			_camera = new Camera();
 		};
 
 		auto MakeWindow = [this](HINSTANCE hInst, HWND hWnd)
@@ -72,33 +72,33 @@ namespace DXMapEditer
 
 		auto InitDirectX = [this]() -> bool
 		{
-			if (!CreateDeviceAndSwapChain()) return false;
-			if (!CreateRenderTargetView()) return false;
-			if (!CreateViewPort()) return false;
-			if (!CreateDepthStencilTexture()) return false;
+			if (!createDeviceAndSwapChain()) return false;
+			if (!createRenderTargetView()) return false;
+			if (!createViewPort()) return false;
+			if (!createDepthStencilTexture()) return false;
 
 			return true;
 		};
 
 		auto DirectXSetting = [this]()
 		{
-			CreateEffectShader();
-			BuildGeometryBuffers();
-			CreateConstantBuffer();
-			CreateRenderState(
+			createEffectShader();
+			buildGeometryBuffers();
+			createConstantBuffer();
+			createRenderState(
 				D3D11_FILL_SOLID,
 				D3D11_CULL_BACK);
 		};
 
 		auto InitMatrix = [this]()
 		{
-			m_World = XMMatrixIdentity();
-			m_pCamera->SetPosition(0.0f, 0.0f, -8.0f);
-			m_pCamera->SetLens(XM_PIDIV2, _ClientWidth / (FLOAT)_ClientHeight, 0.3f, 1000.0f);
-			m_pCamera->UpdateViewMatrix();
+			_world = XMMatrixIdentity();
+			_camera->SetPosition(0.0f, 0.0f, -8.0f);
+			_camera->SetLens(XM_PIDIV2, _clientWidth / (FLOAT)_clientHeight, 0.3f, 1000.0f);
+			_camera->UpdateViewMatrix();
 
-			m_View = m_pCamera->GetView();
-			m_Projection = m_pCamera->GetProj();
+			_view = _camera->GetView();
+			_projection = _camera->GetProj();
 		};
 
 
@@ -108,7 +108,7 @@ namespace DXMapEditer
 		MakeWindow(hInst, hWnd);
 		InitDirectX();
 		InitMatrix();
-		CheckDrawEnabled();
+		checkDrawEnabled();
 		
 		DirectXSetting();
 
@@ -122,34 +122,34 @@ namespace DXMapEditer
 
 	void DirectXWindow::SetGridVariables(int mapWidth, int mapHeight, int gridWidth, int gridHeight)
 	{
-		_MapWidth = mapWidth;
-		_MapHeight = mapHeight;
-		_GridWidth = gridWidth;
-		_GridHeight = gridHeight;
+		_mapWidth = mapWidth;
+		_mapHeight = mapHeight;
+		_gridWidth = gridWidth;
+		_gridHeight = gridHeight;
 	}
 
 	void DirectXWindow::CalcProc(const float deltaTime)
 	{
-		m_pInputLayer->Update();
-		OnKeyboardInput(deltaTime);
+		_inputLayer->Update();
+		onKeyboardInput(deltaTime);
 
-		m_View = m_pCamera->GetView();
-		m_Projection = m_pCamera->GetProj();
+		_view = _camera->GetView();
+		_projection = _camera->GetProj();
 	}
 
 	void DirectXWindow::DrawProc(const float deltaTime)
 	{
 		const FLOAT clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
-		m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, clearColor);
-		m_pImmediateContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		_immediateContext->ClearRenderTargetView(_renderTargetView, clearColor);
+		_immediateContext->ClearDepthStencilView(_depthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
 		// Set Input Assembler 
-		m_pImmediateContext->IASetInputLayout(m_pVertexLayout);
-		m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		_immediateContext->IASetInputLayout(_vertexLayout);
+		_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		if (m_IsDrawEnabled)
+		if (_isDrawEnabled)
 		{
-			CalculateMatrixForHeightMap(deltaTime);
+			calculateMatrixForHeightMap(deltaTime);
 		}
 		return;
 	}
@@ -161,7 +161,7 @@ namespace DXMapEditer
 		case WM_LBUTTONDOWN:
 		case WM_MBUTTONDOWN:
 		case WM_RBUTTONDOWN:
-			OnMouseDown(
+			onMouseDown(
 				wParam,
 				GET_X_LPARAM(lParam),
 				GET_Y_LPARAM(lParam));
@@ -169,17 +169,17 @@ namespace DXMapEditer
 
 		case WM_LBUTTONUP:
 		case WM_MBUTTONUP:
-			OnMouseUp(
+			onMouseUp(
 				wParam,
 				GET_X_LPARAM(lParam),
 				GET_Y_LPARAM(lParam));
 			return 0;
 		case WM_RBUTTONUP:
-			m_PickedTriangle = -1;
+			_pickedTriangle = -1;
 			return 0;
 
 		case WM_MOUSEMOVE:
-			OnMouseMove(
+			onMouseMove(
 				wParam,
 				GET_X_LPARAM(lParam),
 				GET_Y_LPARAM(lParam));
@@ -207,7 +207,7 @@ namespace DXMapEditer
 		}
 	}
 
-	bool DirectXWindow::CreateDeviceAndSwapChain()
+	bool DirectXWindow::createDeviceAndSwapChain()
 	{
 		UINT createDeviceFlags = 0;
 #ifdef _DEBUG
@@ -225,8 +225,8 @@ namespace DXMapEditer
 		ZeroMemory(&sd, sizeof(sd));
 		sd.BufferCount = 1;
 
-		sd.BufferDesc.Width = _ClientWidth;
-		sd.BufferDesc.Height = _ClientHeight;
+		sd.BufferDesc.Width = _clientWidth;
+		sd.BufferDesc.Height = _clientHeight;
 		sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 		sd.BufferDesc.RefreshRate.Numerator = 60;
 		sd.BufferDesc.RefreshRate.Denominator = 1;
@@ -246,62 +246,62 @@ namespace DXMapEditer
 			numFeatureLevels,
 			D3D11_SDK_VERSION,
 			&sd,
-			&m_pSwapChain,
-			&m_pD3DDevice,
-			&m_FeatureLevel,
-			&m_pImmediateContext);
+			&_swapChain,
+			&_d3dDevice,
+			&_featureLevel,
+			&_immediateContext);
 
 		if (FAILED(hr)) return false;
 
 		return true;
 	}
 
-	bool DirectXWindow::CreateRenderTargetView()
+	bool DirectXWindow::createRenderTargetView()
 	{
 		ID3D11Texture2D* pBackBuffer = NULL;
-		auto hr = m_pSwapChain->GetBuffer(0,
+		auto hr = _swapChain->GetBuffer(0,
 			__uuidof(ID3D11Texture2D),
 			(LPVOID*)&pBackBuffer);
 
 		if (FAILED(hr)) return false;
 
-		hr = m_pD3DDevice->CreateRenderTargetView(
+		hr = _d3dDevice->CreateRenderTargetView(
 			pBackBuffer,
 			NULL,
-			&m_pRenderTargetView);
+			&_renderTargetView);
 
 		pBackBuffer->Release();
 
 		if (FAILED(hr)) return false;
 
-		m_pImmediateContext->OMSetRenderTargets(
+		_immediateContext->OMSetRenderTargets(
 			1,
-			&m_pRenderTargetView,
+			&_renderTargetView,
 			NULL);
 
 		return true;
 	}
 
-	bool DirectXWindow::CreateViewPort()
+	bool DirectXWindow::createViewPort()
 	{
 		D3D11_VIEWPORT vp;
-		vp.Width = (FLOAT)_ClientWidth;
-		vp.Height = (FLOAT)_ClientHeight;
+		vp.Width = (FLOAT)_clientWidth;
+		vp.Height = (FLOAT)_clientHeight;
 		vp.MinDepth = 0.0f;
 		vp.MaxDepth = 1.0f;
 		vp.TopLeftX = 0;
 		vp.TopLeftY = 0;
-		m_pImmediateContext->RSSetViewports(1, &vp);
+		_immediateContext->RSSetViewports(1, &vp);
 		return true;
 	}
 
-	bool DirectXWindow::CreateDepthStencilTexture()
+	bool DirectXWindow::createDepthStencilTexture()
 	{
 		// Create depth stencil texture
 		D3D11_TEXTURE2D_DESC descDepth;
 		ZeroMemory(&descDepth, sizeof(descDepth));
-		descDepth.Width = _ClientWidth;
-		descDepth.Height = _ClientHeight;
+		descDepth.Width = _clientWidth;
+		descDepth.Height = _clientHeight;
 		descDepth.MipLevels = 1;
 		descDepth.ArraySize = 1;
 		descDepth.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
@@ -311,7 +311,7 @@ namespace DXMapEditer
 		descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 		descDepth.CPUAccessFlags = 0;
 		descDepth.MiscFlags = 0;
-		auto hr = m_pD3DDevice->CreateTexture2D(&descDepth, NULL, &m_pDepthStencil);
+		auto hr = _d3dDevice->CreateTexture2D(&descDepth, NULL, &_depthStencil);
 
 		if (FAILED(hr)) return false;
 
@@ -324,17 +324,17 @@ namespace DXMapEditer
 		// MSAA를 사용한다면 D3D11_DSV_DIMENSION_TEXTURE2DMS를 써야함
 		descDSV.Texture2D.MipSlice = 0;
 		descDSV.Flags = 0;
-		hr = m_pD3DDevice->CreateDepthStencilView(
-			m_pDepthStencil,
+		hr = _d3dDevice->CreateDepthStencilView(
+			_depthStencil,
 			&descDSV,
-			&m_pDepthStencilView);
+			&_depthStencilView);
 
 		if (FAILED(hr)) return false;
 
-		m_pImmediateContext->OMSetRenderTargets(
+		_immediateContext->OMSetRenderTargets(
 			1,
-			&m_pRenderTargetView,
-			m_pDepthStencilView);
+			&_renderTargetView,
+			_depthStencilView);
 
 		// 피킹된 물체에 적용할 stencilState를 만들어 놓기.
 		D3D11_DEPTH_STENCIL_DESC pickedStencilDesc;
@@ -343,13 +343,13 @@ namespace DXMapEditer
 		pickedStencilDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
 		pickedStencilDesc.StencilEnable = false;
 
-		hr = m_pD3DDevice->CreateDepthStencilState(&pickedStencilDesc, &m_pPickedStencilState);
+		hr = _d3dDevice->CreateDepthStencilState(&pickedStencilDesc, &_pickedStencilState);
 
 		if (FAILED(hr)) return false;
 
 	}
 
-	bool DirectXWindow::CreateEffectShader()
+	bool DirectXWindow::createEffectShader()
 	{
 		ID3DBlob * pErrorBlob = nullptr;
 		ID3DBlob * pCompileBlob = nullptr;
@@ -365,7 +365,7 @@ namespace DXMapEditer
 		hr = D3DX11CreateEffectFromMemory(
 			pCompileBlob->GetBufferPointer(),
 			pCompileBlob->GetBufferSize(),
-			0, m_pD3DDevice, &m_pFX);
+			0, _d3dDevice, &_fx);
 
 		if (FAILED(hr)) return false;
 
@@ -380,90 +380,90 @@ namespace DXMapEditer
 		};
 
 		ID3DX11EffectTechnique * pTech = nullptr;
-		pTech = m_pFX->GetTechniqueByName("NormalTech");
+		pTech = _fx->GetTechniqueByName("NormalTech");
 		D3DX11_PASS_DESC passDesc;
 		pTech->GetPassByIndex(0)->GetDesc(&passDesc);
 
 		UINT numElements = ARRAYSIZE(layout);
-		hr = m_pD3DDevice->CreateInputLayout(
+		hr = _d3dDevice->CreateInputLayout(
 			layout,
 			numElements,
 			passDesc.pIAInputSignature,
 			passDesc.IAInputSignatureSize,
-			&m_pVertexLayout);
+			&_vertexLayout);
 
 		if (FAILED(hr)) return false;
+		return true;
 	}
 
-	bool DirectXWindow::BuildGeometryBuffers()
+	bool DirectXWindow::buildGeometryBuffers()
 	{
-		if (!m_IsDrawEnabled) return false;
-		if (m_MeshData != nullptr)
+		if (!_isDrawEnabled) return false;
+		if (_meshData != nullptr)
 		{
-			delete m_MeshData;
-			m_MeshData = nullptr;
+			delete _meshData;
+			_meshData = nullptr;
 		}
 
-		m_MeshData = new MeshData();
+		_meshData = new MeshData();
 
 		GeometryGenerator geoGen;
 
-		//geoGen.CreateGrid(150.0f, 150.0f, 20, 20, *m_MeshData);
-		geoGen.CreateGrid(_MapWidth, _MapHeight, _GridWidth, _GridHeight, *m_MeshData);
-		_GridIndexCount = m_MeshData->Indices32.size();
+		geoGen.CreateGrid(_mapWidth, _mapHeight, _gridWidth, _gridHeight, *_meshData);
+		_gridIndexCount = _meshData->Indices32.size();
 
-		m_MeshData->Vertices.reserve(m_MeshData->Vertices.size());
-		for (size_t i = 0; i < m_MeshData->Vertices.size(); ++i)
+		_meshData->Vertices.reserve(_meshData->Vertices.size());
+		for (size_t i = 0; i < _meshData->Vertices.size(); ++i)
 		{
-			XMFLOAT3 p = m_MeshData->Vertices[i].pos;
+			XMFLOAT3 p = _meshData->Vertices[i].pos;
 
 			//p.y = GetHeight(p.x, p.z);
 
-			m_MeshData->Vertices[i].pos = p;
+			_meshData->Vertices[i].pos = p;
 
 			if (p.y < -10.0f)
 			{
-				m_MeshData->Vertices[i].color = XMFLOAT4(1.0f, 0.96f, 0.62f, 1.0f);
+				_meshData->Vertices[i].color = XMFLOAT4(1.0f, 0.96f, 0.62f, 1.0f);
 			}
 			else if (p.y < 5.0f)
 			{
-				m_MeshData->Vertices[i].color = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
+				_meshData->Vertices[i].color = XMFLOAT4(0.48f, 0.77f, 0.46f, 1.0f);
 			}
 			else if (p.y < 12.0f)
 			{
-				m_MeshData->Vertices[i].color = XMFLOAT4(0.1f, 0.48f, 0.19f, 1.0f);
+				_meshData->Vertices[i].color = XMFLOAT4(0.1f, 0.48f, 0.19f, 1.0f);
 			}
 			else if (p.y < 20.0f)
 			{
-				m_MeshData->Vertices[i].color = XMFLOAT4(0.45f, 0.39f, 0.34f, 1.0f);
+				_meshData->Vertices[i].color = XMFLOAT4(0.45f, 0.39f, 0.34f, 1.0f);
 			}
 			else
 			{
-				m_MeshData->Vertices[i].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+				_meshData->Vertices[i].color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 			}
 		}
 
 		D3D11_BUFFER_DESC vbd;
 		ZeroMemory(&vbd, sizeof(vbd));
 		vbd.Usage = D3D11_USAGE_DYNAMIC;
-		vbd.ByteWidth = sizeof(MyVertex) * m_MeshData->Vertices.size();
+		vbd.ByteWidth = sizeof(MyVertex) * _meshData->Vertices.size();
 		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 		vbd.MiscFlags = 0;
 
 		D3D11_SUBRESOURCE_DATA vinitData;
 		ZeroMemory(&vinitData, sizeof(vinitData));
-		vinitData.pSysMem = &m_MeshData->Vertices[0];
-		auto hr = m_pD3DDevice->CreateBuffer(
+		vinitData.pSysMem = &_meshData->Vertices[0];
+		auto hr = _d3dDevice->CreateBuffer(
 			&vbd,
 			&vinitData,
-			&m_pHeightMapVertexBuffer);
+			&_heightMapVertexBuffer);
 
 		if (FAILED(hr)) return false;
 
 		D3D11_BUFFER_DESC ibd;
 		ZeroMemory(&ibd, sizeof(ibd));
-		ibd.ByteWidth = sizeof(UINT) * _GridIndexCount;
+		ibd.ByteWidth = sizeof(UINT) * _gridIndexCount;
 		ibd.Usage = D3D11_USAGE_DEFAULT;
 		ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
 		ibd.CPUAccessFlags = 0;
@@ -471,18 +471,18 @@ namespace DXMapEditer
 
 		D3D11_SUBRESOURCE_DATA iinitData;
 		ZeroMemory(&iinitData, sizeof(iinitData));
-		iinitData.pSysMem = &m_MeshData->Indices32[0];
-		hr = m_pD3DDevice->CreateBuffer(
+		iinitData.pSysMem = &_meshData->Indices32[0];
+		hr = _d3dDevice->CreateBuffer(
 			&ibd,
 			&iinitData,
-			&m_pHeightMapIndexBuffer);
+			&_heightMapIndexBuffer);
 
 		if (FAILED(hr)) return false;
 
 		return true;
 	}
 
-	bool DirectXWindow::CreateConstantBuffer()
+	bool DirectXWindow::createConstantBuffer()
 	{
 		D3D11_BUFFER_DESC cbd;
 		ZeroMemory(&cbd, sizeof(cbd));
@@ -490,13 +490,13 @@ namespace DXMapEditer
 		cbd.ByteWidth = sizeof(ConstantBuffer);
 		cbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbd.CPUAccessFlags = 0;
-		auto hr = m_pD3DDevice->CreateBuffer(&cbd, NULL, &m_pConstantBuffer);
+		auto hr = _d3dDevice->CreateBuffer(&cbd, NULL, &_constantBuffer);
 
 		if (FAILED(hr)) return false;
 		return true;
 	}
 
-	bool DirectXWindow::CreateRenderState(
+	bool DirectXWindow::createRenderState(
 		D3D11_FILL_MODE fillMode,
 		D3D11_CULL_MODE cullMode)
 	{
@@ -506,23 +506,23 @@ namespace DXMapEditer
 		rasterizerDesc.CullMode = cullMode;	// Culling 옵션
 		rasterizerDesc.FrontCounterClockwise = false;	  // 앞/뒷면 로직 선택 CCW
 														  // 반시계 방향을 앞면으로 할 것인가?
-		auto hr = m_pD3DDevice->CreateRasterizerState(
+		auto hr = _d3dDevice->CreateRasterizerState(
 			&rasterizerDesc,
-			&m_pSolidRS);
+			&_solidRS);
 
 		if (FAILED(hr)) return false;
 		return true;
 	}
 
-	void DirectXWindow::LoadTexture()
+	void DirectXWindow::loadTexture()
 	{
 		// TODO :: 구지 필요 없을 것 같긴한데. 일단.
 		auto hr = D3DX11CreateShaderResourceViewFromFile(
-			m_pD3DDevice,
+			_d3dDevice,
 			L"./images.jpg",
 			NULL,
 			NULL,
-			&m_pTextureRV,
+			&_textureRV,
 			NULL);
 
 		if (FAILED(hr)) return;
@@ -537,54 +537,54 @@ namespace DXMapEditer
 		sampDesc.MinLOD = 0;			// 최소 Mipmap Range
 		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;	// 최대 Mipmap Range
 
-		hr = m_pD3DDevice->CreateSamplerState(&sampDesc, &m_pSamplerLinear); // SamplerState 생성
+		hr = _d3dDevice->CreateSamplerState(&sampDesc, &_samplerLinear); // SamplerState 생성
 		if (FAILED(hr))	return;
 
 		return;
 	}
 
-	void DirectXWindow::CheckDrawEnabled()
+	void DirectXWindow::checkDrawEnabled()
 	{
 		// Grid 구성 요소중 하나만이라도 0이면, 
-		if (!_MapWidth || !_MapHeight || !_GridWidth || !_GridHeight)
+		if (!_mapWidth || !_mapHeight || !_gridWidth || !_gridHeight)
 		{
 			// 그릴 수 없다.
-			m_IsDrawEnabled = false;
+			_isDrawEnabled = false;
 		}
 		else
 		{
-			m_IsDrawEnabled = true;
+			_isDrawEnabled = true;
 		}
 	}
 
-	void DirectXWindow::CleanupDevice()
+	void DirectXWindow::cleanupDevice()
 	{
-		if (m_pFX)				 m_pFX->Release();
-		if (m_pImmediateContext) m_pImmediateContext->ClearState();
-		if (m_pSamplerLinear)	 m_pSamplerLinear->Release();
+		if (_fx)				 _fx->Release();
+		if (_immediateContext) _immediateContext->ClearState();
+		if (_samplerLinear)	 _samplerLinear->Release();
 
-		if (m_pSolidRS)          m_pSolidRS->Release();
-		if (m_pTextureRV)		 m_pTextureRV->Release();
+		if (_solidRS)          _solidRS->Release();
+		if (_textureRV)		 _textureRV->Release();
 
-		if (m_pDepthStencilView) m_pDepthStencilView->Release();
-		if (m_pConstantBuffer)   m_pConstantBuffer->Release();
-		if (m_pHeightMapIndexBuffer) m_pHeightMapIndexBuffer->Release();
-		if (m_pHeightMapVertexBuffer) m_pHeightMapVertexBuffer->Release();
+		if (_depthStencilView) _depthStencilView->Release();
+		if (_constantBuffer)   _constantBuffer->Release();
+		if (_heightMapIndexBuffer) _heightMapIndexBuffer->Release();
+		if (_heightMapVertexBuffer) _heightMapVertexBuffer->Release();
 
-		if (m_pVertexLayout)     m_pVertexLayout->Release();
+		if (_vertexLayout)     _vertexLayout->Release();
 
-		if (m_pRenderTargetView) m_pRenderTargetView->Release();
-		if (m_pSwapChain)        m_pSwapChain->Release();
-		if (m_pImmediateContext) m_pImmediateContext->Release();
-		if (m_pD3DDevice)        m_pD3DDevice->Release();
+		if (_renderTargetView) _renderTargetView->Release();
+		if (_swapChain)        _swapChain->Release();
+		if (_immediateContext) _immediateContext->Release();
+		if (_d3dDevice)        _d3dDevice->Release();
 	}
 
-	void DirectXWindow::CalculateMatrixForHeightMap(const float deltaTime)
+	void DirectXWindow::calculateMatrixForHeightMap(const float deltaTime)
 	{
 		XMMATRIX mat = XMMatrixRotationY(0.0f);
-		m_World = mat;
+		_world = mat;
 
-		XMMATRIX wvp = m_World * m_View * m_Projection;
+		XMMATRIX wvp = _world * _view * _projection;
 
 		/* Effect FrameWork를 사용하기 전 코드.
 		ConstantBuffer cb;
@@ -599,29 +599,29 @@ namespace DXMapEditer
 		*/
 
 		ID3DX11EffectMatrixVariable * pWvp = nullptr;
-		pWvp = m_pFX->GetVariableByName("wvp")->AsMatrix();
+		pWvp = _fx->GetVariableByName("wvp")->AsMatrix();
 		pWvp->SetMatrix((float*)(&wvp));
 
 		ID3DX11EffectMatrixVariable * pWorld = nullptr;
-		pWorld = m_pFX->GetVariableByName("world")->AsMatrix();
-		pWorld->SetMatrix((float*)(&m_World));
+		pWorld = _fx->GetVariableByName("world")->AsMatrix();
+		pWorld->SetMatrix((float*)(&_world));
 
 		ID3DX11EffectVectorVariable * pLightDir = nullptr;
-		pLightDir = m_pFX->GetVariableByName("lightDir")->AsVector();
-		pLightDir->SetFloatVector((float*)&m_LightDirection);
+		pLightDir = _fx->GetVariableByName("lightDir")->AsVector();
+		pLightDir->SetFloatVector((float*)&_lightDirection);
 
 		ID3DX11EffectVectorVariable * pLightColor = nullptr;
-		pLightColor = m_pFX->GetVariableByName("lightColor")->AsVector();
-		pLightColor->SetFloatVector((float*)&m_LightColor);
+		pLightColor = _fx->GetVariableByName("lightColor")->AsVector();
+		pLightColor->SetFloatVector((float*)&_lightColor);
 
 		// 텍스쳐 세팅.
 		ID3DX11EffectShaderResourceVariable * pDiffuseMap = nullptr;
-		pDiffuseMap = m_pFX->GetVariableByName("texDiffuse")->AsShaderResource();
-		pDiffuseMap->SetResource(m_pTextureRV);
+		pDiffuseMap = _fx->GetVariableByName("texDiffuse")->AsShaderResource();
+		pDiffuseMap->SetResource(_textureRV);
 
 		// 사용할 Technique
 		ID3DX11EffectTechnique * pTech = nullptr;
-		pTech = m_pFX->GetTechniqueByName("NormalTech");
+		pTech = _fx->GetTechniqueByName("NormalTech");
 
 		// 렌더링
 		D3DX11_TECHNIQUE_DESC techDesc;
@@ -631,38 +631,38 @@ namespace DXMapEditer
 
 		for (UINT p = 0; p < techDesc.Passes; ++p)
 		{
-			m_pImmediateContext->IASetVertexBuffers(0, 1, &m_pHeightMapVertexBuffer, &stride, &offset);
-			m_pImmediateContext->IASetIndexBuffer(m_pHeightMapIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+			_immediateContext->IASetVertexBuffers(0, 1, &_heightMapVertexBuffer, &stride, &offset);
+			_immediateContext->IASetIndexBuffer(_heightMapIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
-			if (m_IsDrawWireFrame)
+			if (_isDrawWireFrame)
 			{
-				pTech->GetPassByIndex(2)->Apply(0, m_pImmediateContext);
+				pTech->GetPassByIndex(2)->Apply(0, _immediateContext);
 			}
 			else
 			{
-				pTech->GetPassByIndex(0)->Apply(0, m_pImmediateContext);
+				pTech->GetPassByIndex(0)->Apply(0, _immediateContext);
 			}
-			m_pImmediateContext->DrawIndexed(m_MeshData->Indices32.size(), 0, 0);
+			_immediateContext->DrawIndexed(_meshData->Indices32.size(), 0, 0);
 
 			// Restore default
-			m_pImmediateContext->RSSetState(0);
+			_immediateContext->RSSetState(0);
 
 			// 피킹된 삼각형이 존재하는 경우
-			if (m_PickedTriangle != -1)
+			if (_pickedTriangle != -1)
 			{
-				m_pImmediateContext->OMSetDepthStencilState(m_pPickedStencilState, 0);
-				pTech->GetPassByIndex(p)->Apply(0, m_pImmediateContext);
-				m_pImmediateContext->DrawIndexed(3, 3 * m_PickedTriangle, 0);
+				_immediateContext->OMSetDepthStencilState(_pickedStencilState, 0);
+				pTech->GetPassByIndex(p)->Apply(0, _immediateContext);
+				_immediateContext->DrawIndexed(3, 3 * _pickedTriangle, 0);
 
-				m_pImmediateContext->OMSetDepthStencilState(0, 0);
+				_immediateContext->OMSetDepthStencilState(0, 0);
 			}
 		}
 
-		m_pSwapChain->Present(0, 0);
+		_swapChain->Present(0, 0);
 	}
 
 	const float changeDelta = 0.3f;
-	void DirectXWindow::GeometryHeightChange(int inputKey)
+	void DirectXWindow::geometryHeightChange(int inputKey)
 	{
 #pragma region util
 
@@ -670,23 +670,23 @@ namespace DXMapEditer
 		auto DataMapping = [this]()
 		{
 			D3D11_MAPPED_SUBRESOURCE mappedData;
-			auto hr = m_pImmediateContext->Map(m_pHeightMapVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
+			auto hr = _immediateContext->Map(_heightMapVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
 			MyVertex* v = reinterpret_cast<MyVertex*>(mappedData.pData);
 
-			for (UINT i = 0; i < m_MeshData->Vertices.size(); ++i)
+			for (UINT i = 0; i < _meshData->Vertices.size(); ++i)
 			{
-				v[i].pos = m_MeshData->Vertices[i].pos;
-				v[i].color = m_MeshData->Vertices[i].color;
+				v[i].pos = _meshData->Vertices[i].pos;
+				v[i].color = _meshData->Vertices[i].color;
 			}
 
-			m_pImmediateContext->Unmap(m_pHeightMapIndexBuffer, 0);
+			_immediateContext->Unmap(_heightMapIndexBuffer, 0);
 		};
 
 		// 거리에 따른 사인 그래프 높이 값을 반환해줌.
 		auto GetSinHeight = [&](float stndHeight, float distance) -> float
 		{
-			if (m_SelectRange == 0.f) return FLT_MAX;
-			auto normDist = distance / m_SelectRange;
+			if (_pickingRange == 0.f) return FLT_MAX;
+			auto normDist = distance / _pickingRange;
 
 			// 거리가 변화 범위보다 멀면 floatMax를 반환.
 			if (normDist > 1.0f) return FLT_MAX;
@@ -710,16 +710,16 @@ namespace DXMapEditer
 #pragma endregion
 
 		// 선택한 삼각형이 없는 상태라면 바로 리턴.
-		if (m_PickedTriangle == -1)
+		if (_pickedTriangle == -1)
 		{
 			return;
 		}
 
-		auto& indices = m_MeshData->Indices32;
-		auto& vertices = m_MeshData->Vertices;
+		auto& indices = _meshData->Indices32;
+		auto& vertices = _meshData->Vertices;
 
 		// 선택한 삼각형이 있는 상태라면, 인덱스를 가지고 Vertex를 역추적.
-		auto& pickedVertexIdx = indices[m_PickedTriangle * 3];
+		auto& pickedVertexIdx = indices[_pickedTriangle * 3];
 		auto& pickedVertex = vertices[pickedVertexIdx];
 
 		// Vertex의 높이를 조정.
@@ -727,20 +727,20 @@ namespace DXMapEditer
 		{
 			// PAGE_UP이 눌린 경우, 높이를 올려줌.
 			pickedVertex.pos.y += changeDelta;
-			pickedVertex.color = GetColorByHeight(pickedVertex.pos.y);
+			pickedVertex.color = getColorByHeight(pickedVertex.pos.y);
 		}
 		else if (inputKey == VK_NEXT)
 		{
 			// PAGE_DOWN이 눌린 경우, 높이를 내려줌.
 			pickedVertex.pos.y -= changeDelta;
-			pickedVertex.color = GetColorByHeight(pickedVertex.pos.y);
+			pickedVertex.color = getColorByHeight(pickedVertex.pos.y);
 		}
 
 		// 역추적한 Vertex에서 가까이 있는 Vertex에 접근
-		auto width = m_MeshData->GetWidthNum();
-		auto height = m_MeshData->GetHeightNum();
+		auto width = _meshData->GetWidthNum();
+		auto height = _meshData->GetHeightNum();
 
-		auto vec = GetSelectRange();
+		auto vec = getSelectRange();
 		for (auto& vertexIdx : vec)
 		{
 			auto dist = GetDistance(
@@ -756,7 +756,7 @@ namespace DXMapEditer
 				if (newHeight > vertices[vertexIdx].pos.y)
 				{
 					vertices[vertexIdx].pos.y = newHeight;
-					vertices[vertexIdx].color = GetColorByHeight(newHeight);
+					vertices[vertexIdx].color = getColorByHeight(newHeight);
 				}
 			}
 			else
@@ -764,7 +764,7 @@ namespace DXMapEditer
 				if (newHeight < vertices[vertexIdx].pos.y)
 				{
 					vertices[vertexIdx].pos.y = newHeight;
-					vertices[vertexIdx].color = GetColorByHeight(newHeight);
+					vertices[vertexIdx].color = getColorByHeight(newHeight);
 				}
 			}
 		}
@@ -773,7 +773,7 @@ namespace DXMapEditer
 
 	}
 
-	XMFLOAT4 DirectXWindow::GetColorByHeight(float height)
+	XMFLOAT4 DirectXWindow::getColorByHeight(float height)
 	{
 		if (height < -10.0f)
 		{
@@ -797,7 +797,7 @@ namespace DXMapEditer
 		}
 	}
 
-	std::vector<int> DirectXWindow::GetSelectRange()
+	std::vector<int> DirectXWindow::getSelectRange()
 	{
 #pragma region Util
 
@@ -814,13 +814,13 @@ namespace DXMapEditer
 
 #pragma endregion
 		std::vector<int> vertexVector;
-		if (m_PickedTriangle == -1) return vertexVector;
+		if (_pickedTriangle == -1) return vertexVector;
 
-		auto pickedVertexIdx = m_MeshData->Indices32[m_PickedTriangle * 3];
-		auto pickedVertex = m_MeshData->Vertices[pickedVertexIdx];
+		auto pickedVertexIdx = _meshData->Indices32[_pickedTriangle * 3];
+		auto pickedVertex = _meshData->Vertices[pickedVertexIdx];
 
-		auto width = m_MeshData->GetWidthNum();
-		auto height = m_MeshData->GetHeightNum();
+		auto width = _meshData->GetWidthNum();
+		auto height = _meshData->GetHeightNum();
 
 		{
 			//int curIdx = pickedVertexIdx;
@@ -894,15 +894,15 @@ namespace DXMapEditer
 			//}
 		}
 
-		for (int i = 0; i < m_MeshData->Vertices.size(); ++i)
+		for (int i = 0; i < _meshData->Vertices.size(); ++i)
 		{
 			auto dist = GetDistance(
 				pickedVertex.pos.x,
 				pickedVertex.pos.z,
-				m_MeshData->Vertices[i].pos.x,
-				m_MeshData->Vertices[i].pos.z);
+				_meshData->Vertices[i].pos.x,
+				_meshData->Vertices[i].pos.z);
 
-			if (dist < m_SelectRange)
+			if (dist < _pickingRange)
 			{
 				vertexVector.push_back(i);
 			}
@@ -911,28 +911,28 @@ namespace DXMapEditer
 		return vertexVector;
 	}
 
-	void DirectXWindow::Pick(int sx, int sy)
+	void DirectXWindow::pick(int sx, int sy)
 	{
 		// 메쉬 데이터가 아직 만들어지지 않은 상태라면, 에러로 판단.
-		if (m_MeshData == nullptr) return;
+		if (_meshData == nullptr) return;
 
 		// 시야 공간에서의 피킹 반직선 계산.
-		XMFLOAT4X4 P = m_pCamera->GetProj4x4f();
+		XMFLOAT4X4 P = _camera->GetProj4x4f();
 
-		float vx = (+2.0f * sx / _ClientWidth - 1.0f) / P(0, 0);
-		float vy = (-2.0f * sy / _ClientHeight + 1.0f) / P(1, 1);
+		float vx = (+2.0f * sx / _clientWidth - 1.0f) / P(0, 0);
+		float vy = (-2.0f * sy / _clientHeight + 1.0f) / P(1, 1);
 
 		// 반직선 정보 정의 (Origin은 시야공간에서 원점이다)
 		XMVECTOR rayOrigin = XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f);
 		XMVECTOR rayDir = XMVectorSet(vx, vy, 1.0f, 0.0f);
 
 		// 시야 공간에서 월드 공간으로 전환하는 행렬 구하기.
-		XMMATRIX V = m_pCamera->GetView();
+		XMMATRIX V = _camera->GetView();
 		XMMATRIX invView = XMMatrixInverse(&XMMatrixDeterminant(V), V);
 
 		// 월드 공간에서 Mesh 공간으로 전환하는 행렬 구하기. 
 		// (현재상태에서는 Identity Matrix이므로 별로 의미는 없음)
-		XMMATRIX W = m_World;
+		XMMATRIX W = _world;
 		XMMATRIX invWorld = XMMatrixInverse(&XMMatrixDeterminant(W), W);
 
 		// 시야 공간에서 Mesh의 로컬 공간으로 가는 행렬 정의
@@ -947,12 +947,12 @@ namespace DXMapEditer
 
 		/* 교차 판정 시작. */
 		// 선택 삼각형을 -1로 초기화한다.
-		m_PickedTriangle = -1;
+		_pickedTriangle = -1;
 		// 임시로 가장 먼 거리를 잡은 tmin
 		float tmin = 10000.0f;
 
-		auto meshIndices = m_MeshData->Indices32;
-		auto meshVertices = m_MeshData->Vertices;
+		auto meshIndices = _meshData->Indices32;
+		auto meshVertices = _meshData->Vertices;
 		// 이 삼각형의 index를 쭉 찾아가면서 교차했는지 판정.
 		for (UINT i = 0; i < meshIndices.size() / 3; ++i)
 		{
@@ -974,84 +974,84 @@ namespace DXMapEditer
 				{
 					// 피킹된 삼각형의 정보를 갱신.
 					tmin = t;
-					m_PickedTriangle = i;
+					_pickedTriangle = i;
 				}
 			}
 		}
 	}
 
-	void DirectXWindow::OnKeyboardInput(float deltaTime)
+	void DirectXWindow::onKeyboardInput(float deltaTime)
 	{
-		auto CameraMoveSpeed = m_pCamera->GetMoveSpeed();
-		if (m_pInputLayer->IsKeyDown(VK_W))
+		auto CameraMoveSpeed = _camera->GetMoveSpeed();
+		if (_inputLayer->IsKeyDown(VK_W))
 		{
-			m_pCamera->Walk(CameraMoveSpeed * deltaTime);
+			_camera->Walk(CameraMoveSpeed * deltaTime);
 		}
-		if (m_pInputLayer->IsKeyDown(VK_S))
+		if (_inputLayer->IsKeyDown(VK_S))
 		{
-			m_pCamera->Walk(-CameraMoveSpeed * deltaTime);
+			_camera->Walk(-CameraMoveSpeed * deltaTime);
 		}
-		if (m_pInputLayer->IsKeyDown(VK_A))
+		if (_inputLayer->IsKeyDown(VK_A))
 		{
-			m_pCamera->Strafe(-CameraMoveSpeed * deltaTime);
+			_camera->Strafe(-CameraMoveSpeed * deltaTime);
 		}
-		if (m_pInputLayer->IsKeyDown(VK_D))
+		if (_inputLayer->IsKeyDown(VK_D))
 		{
-			m_pCamera->Strafe(CameraMoveSpeed * deltaTime);
+			_camera->Strafe(CameraMoveSpeed * deltaTime);
 		}
-		if (m_pInputLayer->IsKeyDown(VK_TAB))
+		if (_inputLayer->IsKeyDown(VK_TAB))
 		{
-			if (m_IsDrawWireFrame) m_IsDrawWireFrame = false;
-			else m_IsDrawWireFrame = true;
+			if (_isDrawWireFrame) _isDrawWireFrame = false;
+			else _isDrawWireFrame = true;
 		}
-		if (m_pInputLayer->IsKeyDown(VK_PRIOR))
+		if (_inputLayer->IsKeyDown(VK_PRIOR))
 		{
-			GeometryHeightChange(VK_PRIOR);
+			geometryHeightChange(VK_PRIOR);
 		}
-		if (m_pInputLayer->IsKeyDown(VK_NEXT))
+		if (_inputLayer->IsKeyDown(VK_NEXT))
 		{
-			GeometryHeightChange(VK_NEXT);
+			geometryHeightChange(VK_NEXT);
 		}
 
-		m_pCamera->UpdateViewMatrix();
+		_camera->UpdateViewMatrix();
 	}
 
-	void DirectXWindow::OnMouseDown(WPARAM btnState, int x, int y)
+	void DirectXWindow::onMouseDown(WPARAM btnState, int x, int y)
 	{
 		// 왼쪽 버튼 클릭시 처리.
 		if ((btnState & MK_LBUTTON) != 0)
 		{
-			m_LastMousePos.x = x;
-			m_LastMousePos.y = y;
+			_lastMousePos.x = x;
+			_lastMousePos.y = y;
 
 			SetCapture(_hThis);
 		}
 		// 오른쪽 버튼 클릭시 처리.
 		else if ((btnState & MK_RBUTTON) != 0)
 		{
-			Pick(x, y);
+			pick(x, y);
 		}
 	}
 
-	void DirectXWindow::OnMouseUp(WPARAM btnState, int x, int y)
+	void DirectXWindow::onMouseUp(WPARAM btnState, int x, int y)
 	{
 		ReleaseCapture();
 	}
 
-	void DirectXWindow::OnMouseMove(WPARAM btnState, int x, int y)
+	void DirectXWindow::onMouseMove(WPARAM btnState, int x, int y)
 	{
 		if ((btnState & MK_LBUTTON) != 0)
 		{
 			// Make each pixel correspond to a quarter of a degree.
-			float dx = XMConvertToRadians(0.25f * static_cast<float>(x - m_LastMousePos.x));
-			float dy = XMConvertToRadians(0.25f * static_cast<float>(y - m_LastMousePos.y));
+			float dx = XMConvertToRadians(0.25f * static_cast<float>(x - _lastMousePos.x));
+			float dy = XMConvertToRadians(0.25f * static_cast<float>(y - _lastMousePos.y));
 
-			m_pCamera->Pitch(dy);
-			m_pCamera->RotateY(dx);
+			_camera->Pitch(dy);
+			_camera->RotateY(dx);
 		}
 
-		m_LastMousePos.x = x;
-		m_LastMousePos.y = y;
+		_lastMousePos.x = x;
+		_lastMousePos.y = y;
 	}
 
 }

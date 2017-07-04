@@ -40,83 +40,83 @@ namespace DXMapEditer
 	private :
 
 		// DirectX Fuctions
-		bool CreateDeviceAndSwapChain();
-		bool CreateRenderTargetView();
-		bool CreateViewPort();
-		bool CreateDepthStencilTexture();
-		bool CreateEffectShader();
-		bool BuildGeometryBuffers();
-		bool CreateConstantBuffer();
-		bool CreateRenderState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode);
-		void LoadTexture();
+		bool createDeviceAndSwapChain();
+		bool createRenderTargetView();
+		bool createViewPort();
+		bool createDepthStencilTexture();
+		bool createEffectShader();
+		bool buildGeometryBuffers();
+		bool createConstantBuffer();
+		bool createRenderState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode);
+		void loadTexture();
 
-		void CheckDrawEnabled();
-		void CleanupDevice();
-		void CalculateMatrixForHeightMap(const float deltaTime);
-		void GeometryHeightChange(int inputKey);
-		XMFLOAT4 GetColorByHeight(float height);
-		std::vector<int> GetSelectRange();
-		void Pick(int sx, int sy);
+		void checkDrawEnabled();
+		void cleanupDevice();
+		void calculateMatrixForHeightMap(const float deltaTime);
+		void geometryHeightChange(int inputKey);
+		XMFLOAT4 getColorByHeight(float height);
+		std::vector<int> getSelectRange();
+		void pick(int sx, int sy);
 
 		// InputFunctions
-		void OnKeyboardInput(float deltaTime);
-		void OnMouseDown(WPARAM btnState, int x, int y);
-		void OnMouseUp(WPARAM btnState, int x, int y);
-		void OnMouseMove(WPARAM btnState, int x, int y);
+		void onKeyboardInput(float deltaTime);
+		void onMouseDown(WPARAM btnState, int x, int y);
+		void onMouseUp(WPARAM btnState, int x, int y);
+		void onMouseMove(WPARAM btnState, int x, int y);
 
 	private :
 
-		InputLayer* m_pInputLayer = nullptr;
-		Camera*		m_pCamera = nullptr;
-		POINT m_LastMousePos;
-		float m_SelectRange = 25.f;
-		const float m_ChangeDelta = 0.1f;
+		InputLayer*               _inputLayer            = nullptr;
+		Camera*		              _camera                = nullptr;
+		POINT                     _lastMousePos;
+		float                     _pickingRange          = 25.f;
+		const float               _changeDelta           = 0.1f;
 
 		// Window Variable
-		HWND _hWnd;
-		HWND _hThis;
-		int  _ClientWidth  = 800;
-		int  _ClientHeight = 600;
+		HWND                      _hWnd;
+		HWND                      _hThis;
+		int                       _clientWidth           = 800;
+		int                       _clientHeight          = 600;
 		
 		// Grid Variable
-		int  _MapWidth     = 0;
-		int  _MapHeight    = 0;
-		int  _GridWidth    = 0;
-		int  _GridHeight   = 0;
-		uint32_t _GridIndexCount = 0;
+		int                       _mapWidth              = 0;
+		int                       _mapHeight             = 0;
+		int                       _gridWidth             = 0;
+		int                       _gridHeight            = 0;
+		uint32_t				  _gridIndexCount        = 0;
 
 		// DirectX Variable
-		IDXGISwapChain*           m_pSwapChain = nullptr;
-		ID3D11Device*             m_pD3DDevice = nullptr;
-		ID3D11DeviceContext*      m_pImmediateContext = nullptr;
-		ID3D11RenderTargetView*   m_pRenderTargetView = nullptr;
+		IDXGISwapChain*           _swapChain             = nullptr;
+		ID3D11Device*             _d3dDevice             = nullptr;
+		ID3D11DeviceContext*      _immediateContext      = nullptr;
+		ID3D11RenderTargetView*   _renderTargetView      = nullptr;
 
-		ID3D11Texture2D*		  m_pDepthStencil = nullptr;
-		ID3D11DepthStencilView*   m_pDepthStencilView = nullptr;
-		D3D_FEATURE_LEVEL		  m_FeatureLevel = D3D_FEATURE_LEVEL_11_0;
+		ID3D11Texture2D*		  _depthStencil          = nullptr;
+		ID3D11DepthStencilView*   _depthStencilView      = nullptr;
+		D3D_FEATURE_LEVEL		  _featureLevel          = D3D_FEATURE_LEVEL_11_0;
 
-		ID3D11DepthStencilState * m_pPickedStencilState = nullptr;
-		ID3DX11Effect* m_pFX = nullptr;
-		ID3D11Buffer*			  m_pHeightMapVertexBuffer = nullptr;
-		ID3D11Buffer*			  m_pHeightMapIndexBuffer = nullptr;
-		MeshData*				  m_MeshData = nullptr;
-		ID3D11Buffer*             m_pConstantBuffer = nullptr;
+		ID3D11DepthStencilState * _pickedStencilState    = nullptr;
+		ID3DX11Effect*            _fx                    = nullptr;
+		ID3D11Buffer*			  _heightMapVertexBuffer = nullptr;
+		ID3D11Buffer*			  _heightMapIndexBuffer  = nullptr;
+		MeshData*				  _meshData              = nullptr;
+		ID3D11Buffer*             _constantBuffer        = nullptr;
 
-		ID3D11InputLayout*        m_pVertexLayout = nullptr;
-		ID3D11RasterizerState*	  m_pSolidRS = nullptr;
-		ID3D11ShaderResourceView* m_pTextureRV = nullptr;
-		ID3D11SamplerState*		  m_pSamplerLinear = nullptr;
+		ID3D11InputLayout*        _vertexLayout          = nullptr;
+		ID3D11RasterizerState*	  _solidRS               = nullptr;
+		ID3D11ShaderResourceView* _textureRV             = nullptr;
+		ID3D11SamplerState*		  _samplerLinear         = nullptr;
 
-		XMMATRIX    m_World;
-		XMMATRIX    m_View;
-		XMMATRIX    m_Projection;
-		bool		m_IsDrawWireFrame = false;
-		bool		m_IsDrawEnabled = false;
+		XMMATRIX                  _world;
+		XMMATRIX                  _view;
+		XMMATRIX                  _projection;
+		bool		              _isDrawWireFrame       = false;
+		bool		              _isDrawEnabled         = false;
 
 		/* Picking */
-		XMFLOAT4 m_LightDirection = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
-		XMFLOAT4 m_LightColor = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
-		UINT	 m_PickedTriangle = -1;
+		XMFLOAT4                  _lightDirection        = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
+		XMFLOAT4                  _lightColor            = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
+		UINT	                  _pickedTriangle        = -1;
 
 		// Common Variable
 	};
