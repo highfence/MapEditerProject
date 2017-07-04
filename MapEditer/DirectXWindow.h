@@ -84,6 +84,7 @@ namespace DXMapEditer
 		void			 onMouseDown(WPARAM btnState, int x, int y);
 		void			 onMouseUp(WPARAM btnState, int x, int y);
 		void			 onMouseMove(WPARAM btnState, int x, int y);
+		void			 dataMapping();
 
 	private :
 

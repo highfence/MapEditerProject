@@ -219,6 +219,7 @@ namespace DXMapEditer
 			break;
 		}
 
+		// TODO :: 데이터 로드, 세이브, 그리드 조정, 뭐 이런거 만들기.
 		}
 	}
 

@@ -104,6 +104,13 @@ namespace DXMapEditer
 			widthNum = 0;
 			heightNum = 0;
 		}
+		void Initialize()
+		{
+			for (auto& i : Vertices)
+			{
+				i.pos.y = 0.0f;
+			}
+		}
 
 	private :
 		std::vector<uint16_t> m_Indices16;

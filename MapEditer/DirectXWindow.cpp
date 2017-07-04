@@ -135,6 +135,8 @@ namespace DXMapEditer
 
 		_view = _camera->GetView();
 		_projection = _camera->GetProj();
+
+		dataMapping();
 	}
 
 	void DirectXWindow::DrawProc(const float deltaTime)
@@ -214,7 +216,7 @@ namespace DXMapEditer
 
 	void DirectXWindow::GridInitialize(int initFlag)
 	{
-		_meshData->Clear();
+		_meshData->Initialize();
 	}
 
 	void DirectXWindow::CheckoutWireframe(int flag)
@@ -493,7 +495,7 @@ namespace DXMapEditer
 		vbd.ByteWidth = sizeof(MyVertex) * _meshData->Vertices.size();
 		vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 		vbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		vbd.MiscFlags = 0;
+		//vbd.MiscFlags = 0;
 
 		D3D11_SUBRESOURCE_DATA vinitData;
 		ZeroMemory(&vinitData, sizeof(vinitData));
@@ -633,13 +635,13 @@ namespace DXMapEditer
 		/* Effect FrameWork를 사용하기 전 코드.
 		ConstantBuffer cb;
 		cb.wvp = XMMatrixTranspose(wvp);
-		cb.world = XMMatrixTranspose(m_World);
-		cb.lightDir = m_LightDirection;
-		cb.lightColor = m_LightColor;
+		cb.world = XMMatrixTranspose(_world);
+		cb.lightDir = _lightDirection;
+		cb.lightColor = _lightColor;
 
-		m_pImmediateContext->UpdateSubresource(m_pConstantBuffer, 0, 0, &cb, 0, 0); // update data
-		m_pImmediateContext->VSSetConstantBuffers(0, 1, &m_pConstantBuffer);// set constant buffer.
-		m_pImmediateContext->PSSetConstantBuffers(0, 1, &m_pConstantBuffer);
+		_immediateContext->UpdateSubresource(_constantBuffer, 0, 0, &cb, 0, 0); // update data
+		_immediateContext->VSSetConstantBuffers(0, 1, &_constantBuffer);// set constant buffer.
+		_immediateContext->PSSetConstantBuffers(0, 1, &_constantBuffer);
 		*/
 
 		ID3DX11EffectMatrixVariable * pWvp = nullptr;
@@ -673,11 +675,11 @@ namespace DXMapEditer
 		UINT stride = sizeof(MyVertex);
 		UINT offset = 0;
 
+		_immediateContext->IASetVertexBuffers(0, 1, &_heightMapVertexBuffer, &stride, &offset);
+		_immediateContext->IASetIndexBuffer(_heightMapIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+
 		for (UINT p = 0; p < techDesc.Passes; ++p)
 		{
-			_immediateContext->IASetVertexBuffers(0, 1, &_heightMapVertexBuffer, &stride, &offset);
-			_immediateContext->IASetIndexBuffer(_heightMapIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-
 			if (_isDrawWireFrame)
 			{
 				pTech->GetPassByIndex(2)->Apply(0, _immediateContext);
@@ -714,16 +716,21 @@ namespace DXMapEditer
 		auto DataMapping = [this]()
 		{
 			D3D11_MAPPED_SUBRESOURCE mappedData;
+			ZeroMemory(&mappedData, sizeof(D3D11_MAPPED_SUBRESOURCE));
 			auto hr = _immediateContext->Map(_heightMapVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
-			MyVertex* v = reinterpret_cast<MyVertex*>(mappedData.pData);
 
-			for (UINT i = 0; i < _meshData->Vertices.size(); ++i)
-			{
-				v[i].pos = _meshData->Vertices[i].pos;
-				v[i].color = _meshData->Vertices[i].color;
-			}
+			memcpy(mappedData.pData, &_meshData->Vertices[0], sizeof(MyVertex) * _meshData->Vertices.size());
 
 			_immediateContext->Unmap(_heightMapIndexBuffer, 0);
+
+			//MyVertex* v = reinterpret_cast<MyVertex*>(mappedData.pData);
+
+			//auto& vertices = _meshData->Vertices;
+			//for (UINT i = 0; i < _meshData->Vertices.size(); ++i)
+			//{
+			//	v[i].pos = _meshData->Vertices[i].pos;
+			//	v[i].color = _meshData->Vertices[i].color;
+			//}
 		};
 
 		// 거리에 따른 사인 그래프 높이 값을 반환해줌.
@@ -813,7 +820,7 @@ namespace DXMapEditer
 			}
 		}
 
-		DataMapping();
+		//DataMapping();
 
 	}
 
@@ -1096,6 +1103,17 @@ namespace DXMapEditer
 
 		_lastMousePos.x = x;
 		_lastMousePos.y = y;
+	}
+
+	void DirectXWindow::dataMapping()
+	{
+		D3D11_MAPPED_SUBRESOURCE mappedData;
+		ZeroMemory(&mappedData, sizeof(D3D11_MAPPED_SUBRESOURCE));
+		auto hr = _immediateContext->Map(_heightMapVertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData);
+
+		memcpy(mappedData.pData, &_meshData->Vertices[0], sizeof(MyVertex) * _meshData->Vertices.size());
+
+		_immediateContext->Unmap(_heightMapIndexBuffer, 0);
 	}
 
 }
