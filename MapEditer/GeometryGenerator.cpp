@@ -5,13 +5,14 @@
 
 namespace DXMapEditer 
 {
-	MeshData GeometryGenerator::CreateGrid(
+	void GeometryGenerator::CreateGrid(
 		float width,
 		float depth,
 		UINT m,
 		UINT n,
 		MeshData & meshData)
 	{
+
 		UINT vertexCount = m * n;
 		UINT faceCount = (m - 1) *  (n - 1) * 2;
 
@@ -62,7 +63,5 @@ namespace DXMapEditer
 
 		meshData.SetWidthNum(m);
 		meshData.SetHeightNum(n);
-
-		return meshData;
 	}
 }

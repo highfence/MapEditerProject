@@ -8,7 +8,7 @@ namespace DXMapEditer
 		GeometryGenerator() = default;
 		~GeometryGenerator() = default;
 
-		MeshData CreateGrid(float width, float depth, UINT m, UINT n, MeshData& meshData);
+		void CreateGrid(float width, float depth, UINT m, UINT n, MeshData& meshData);
 
 	private :
 

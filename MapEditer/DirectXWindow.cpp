@@ -101,12 +101,14 @@ namespace DXMapEditer
 			m_Projection = m_pCamera->GetProj();
 		};
 
+
 #pragma endregion 
 
 		InnerClassInitialize();
 		MakeWindow(hInst, hWnd);
 		InitDirectX();
 		InitMatrix();
+		CheckDrawEnabled();
 		
 		DirectXSetting();
 
@@ -137,7 +139,7 @@ namespace DXMapEditer
 
 	void DirectXWindow::DrawProc(const float deltaTime)
 	{
-		const FLOAT clearColor[4] = { 0.75f, 0.75f, 0.75f, 1.0f };
+		const FLOAT clearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
 		m_pImmediateContext->ClearRenderTargetView(m_pRenderTargetView, clearColor);
 		m_pImmediateContext->ClearDepthStencilView(m_pDepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 
@@ -145,7 +147,10 @@ namespace DXMapEditer
 		m_pImmediateContext->IASetInputLayout(m_pVertexLayout);
 		m_pImmediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		CalculateMatrixForHeightMap(deltaTime);
+		if (m_IsDrawEnabled)
+		{
+			CalculateMatrixForHeightMap(deltaTime);
+		}
 		return;
 	}
 
@@ -392,11 +397,13 @@ namespace DXMapEditer
 
 	bool DirectXWindow::BuildGeometryBuffers()
 	{
+		if (!m_IsDrawEnabled) return false;
 		if (m_MeshData != nullptr)
 		{
 			delete m_MeshData;
 			m_MeshData = nullptr;
 		}
+
 		m_MeshData = new MeshData();
 
 		GeometryGenerator geoGen;
@@ -534,6 +541,20 @@ namespace DXMapEditer
 		if (FAILED(hr))	return;
 
 		return;
+	}
+
+	void DirectXWindow::CheckDrawEnabled()
+	{
+		// Grid 구성 요소중 하나만이라도 0이면, 
+		if (!_MapWidth || !_MapHeight || !_GridWidth || !_GridHeight)
+		{
+			// 그릴 수 없다.
+			m_IsDrawEnabled = false;
+		}
+		else
+		{
+			m_IsDrawEnabled = true;
+		}
 	}
 
 	void DirectXWindow::CleanupDevice()

@@ -50,6 +50,7 @@ namespace DXMapEditer
 		bool CreateRenderState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode);
 		void LoadTexture();
 
+		void CheckDrawEnabled();
 		void CleanupDevice();
 		void CalculateMatrixForHeightMap(const float deltaTime);
 		void GeometryHeightChange(int inputKey);
@@ -110,6 +111,7 @@ namespace DXMapEditer
 		XMMATRIX    m_View;
 		XMMATRIX    m_Projection;
 		bool		m_IsDrawWireFrame = false;
+		bool		m_IsDrawEnabled = false;
 
 		/* Picking */
 		XMFLOAT4 m_LightDirection = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
