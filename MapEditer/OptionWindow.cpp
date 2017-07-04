@@ -4,7 +4,8 @@
 #include "OptionWindow.h"
 
 #define MOVE_SPEED_EDIT 1001
-#define GO_TO_ORIGIN_BUTTON 1002
+#define WIREFRAME_CHECK 1002
+#define GO_TO_ORIGIN_BUTTON 1003
 #define MOVE_RADIO_BUTTON 2001
 #define RISE_RADIO_BUTTON 2002
 #define DOWN_RADIO_BUTTON 2003
@@ -72,7 +73,7 @@ namespace DXMapEditer
 
 			_WireFrameRadioButton = CreateWindow(TEXT("button"), TEXT("View Wireframe"),
 				WS_CHILD | WS_VISIBLE | BS_AUTOCHECKBOX,
-				15, 50, 155, 25, hWnd, (HMENU)-1, _hInst, NULL);
+				15, 50, 155, 25, hWnd, (HMENU)WIREFRAME_CHECK, _hInst, NULL);
 		};
 
 		// Make Picking Tab
@@ -135,6 +136,23 @@ namespace DXMapEditer
 		WPARAM wParam,
 		LPARAM lParam)
 	{
+#pragma region Util Func
+
+		auto findFuncAndRun = [this](OPT_WINDOW_FUNCTIONS funcNum, int param)
+		{
+			auto iter = _funcMap.find(funcNum);
+
+			if (iter == _funcMap.end())
+			{
+				OutputDebugString(L"Invalid function Number");
+				return;
+			}
+
+			iter->second(param);
+		};
+
+#pragma endregion
+
 		switch (LOWORD(wParam))
 		{
 		case MOVE_SPEED_EDIT:
@@ -144,21 +162,24 @@ namespace DXMapEditer
 			case EN_CHANGE:
 			{	
 				int value = GetDlgItemInt(_hThis, MOVE_SPEED_EDIT, NULL, FALSE);
-				auto iter = _funcMap.find(OPT_WINDOW_FUNCTIONS::CAMERA_MOVE_SPEED_CHANGE);
-
-				if (iter == _funcMap.end())
-				{
-					OutputDebugString(L"Invalid function Number");
-					break;
-				}
-
-				iter->second(value);
+				findFuncAndRun(OPT_WINDOW_FUNCTIONS::CAMERA_MOVE_SPEED_CHANGE, value);
 				break;
 			}
 			default:
 				break;
 			}
 		}
+		case WIREFRAME_CHECK :
+		{
+			findFuncAndRun(OPT_WINDOW_FUNCTIONS::CHECK_WIREFRAME, 0);
+			break;
+		}
+		case GO_TO_ORIGIN_BUTTON :
+		{
+			findFuncAndRun(OPT_WINDOW_FUNCTIONS::GO_TO_ORIGIN_CLICKED, 0);
+			break;
+		}
+
 		}
 	}
 
