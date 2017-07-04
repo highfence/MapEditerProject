@@ -11,6 +11,17 @@ namespace DXMapEditer
 	MainWindow::MainWindow(HINSTANCE hInstance, int nCmdShow)
 		: _hInst(hInstance), _CmdShow(nCmdShow)
 	{
+#pragma region UtilFunctions
+
+		auto registFunc = [this]()
+		{
+			_pOptionWindow->RegistVariableChangeFunc(
+				OPT_WINDOW_FUNCTIONS::CAMERA_MOVE_SPEED_CHANGE,
+				[this](int changeValue) { _pDXWindow->SetCameraMove(changeValue); });
+		};
+
+#pragma endregion
+
 		_pTimer = std::make_unique<MyTimer>();
 		_pTimer->Init();
 		_pDXWindow = std::make_unique<DirectXWindow>();
@@ -20,6 +31,7 @@ namespace DXMapEditer
 
 		getInitSetting();
 		initWindow();
+		registFunc();
 	}
 
 	MainWindow::~MainWindow()
@@ -142,7 +154,6 @@ namespace DXMapEditer
 			
 		case WM_COMMAND :
 		{
-			OutputDebugString((std::to_wstring(LOWORD(wParam)) + L"\n").c_str());
 			switch (LOWORD(wParam))
 			{
 			case 1:

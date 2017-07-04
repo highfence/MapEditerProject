@@ -36,6 +36,9 @@ namespace DXMapEditer
 		void DrawProc(const float deltaTime);
 
 		LRESULT CALLBACK MessageHandler(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+
+		// Setter
+		void SetCameraMove(int cameraMoveSpeed);
 		
 	private :
 

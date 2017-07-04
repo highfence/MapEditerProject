@@ -190,6 +190,11 @@ namespace DXMapEditer
 		}
 	}
 
+	void DirectXWindow::SetCameraMove(int cameraMoveSpeed)
+	{
+		_camera->SetMoveSpeed(cameraMoveSpeed);
+	}
+
 	LRESULT DirectXWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
 	{
 		switch (iMessage)

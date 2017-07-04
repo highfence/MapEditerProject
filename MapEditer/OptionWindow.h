@@ -1,7 +1,14 @@
 #pragma once
+#include <Windows.h>
+#include <functional>
+#include <unordered_map>
+
+#include "Definition.h"
 
 namespace DXMapEditer
 {
+	using DetectFunc = std::function<void(int)>;
+
 	class OptionWindow
 	{
 	public :
@@ -9,10 +16,21 @@ namespace DXMapEditer
 		OptionWindow() = default;
 		~OptionWindow();
 
-		void CreateOptionWindow(HINSTANCE hInst, HWND hWnd);
+		void CreateOptionWindow(
+			HINSTANCE hInst,
+			HWND hWnd);
+
 		void MoveOptionWindow();
+
 		void CreateWindows(HWND hWnd);
-		void CommandProc(WPARAM wParam, LPARAM lParam);
+
+		void CommandProc(
+			WPARAM wParam,
+			LPARAM lParam);
+
+		void RegistVariableChangeFunc(
+			OPT_WINDOW_FUNCTIONS funcNum,
+			DetectFunc functor);
 
 	private :
 
@@ -34,6 +52,9 @@ namespace DXMapEditer
 		HWND _DownButton;
 		HWND _StandardizationButton;
 		HWND _RangeEdit;
+
+		// Detect variable changes
+		std::unordered_map<OPT_WINDOW_FUNCTIONS, DetectFunc> _funcMap;
 
 	};
 

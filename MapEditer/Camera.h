@@ -75,6 +75,7 @@ namespace DXMapEditer
 		void UpdateViewMatrix();
 
 		float GetMoveSpeed() const { return m_MoveSpeed; };
+		void SetMoveSpeed(const int moveSpeed);
 
 	private:
 
@@ -96,7 +97,7 @@ namespace DXMapEditer
 		XMFLOAT4X4 m_View;
 		XMFLOAT4X4 m_Proj;
 
-		float m_MoveSpeed = 0.1f;
+		float m_MoveSpeed = 0.01f;
 	};
 
 }

@@ -155,4 +155,9 @@ namespace DXMapEditer
 		m_View(3, 3) = 1.0f;
 	}
 
+	void Camera::SetMoveSpeed(const int moveSpeed)
+	{
+		m_MoveSpeed = static_cast<float>(moveSpeed) * 0.001f;
+	}
+
 }

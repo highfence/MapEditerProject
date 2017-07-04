@@ -4,6 +4,12 @@
 
 namespace DXMapEditer 
 {
+	enum class OPT_WINDOW_FUNCTIONS : int
+	{
+		CAMERA_MOVE_SPEED_CHANGE,
+		FUNC_NUM
+	};
+
 	using namespace DirectX;
 
 	struct  MyVertex

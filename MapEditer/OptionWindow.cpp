@@ -1,4 +1,6 @@
 #include <Windows.h>
+#include <unordered_map>
+#include <string>
 #include "OptionWindow.h"
 
 #define MOVE_SPEED_EDIT 1001
@@ -61,7 +63,7 @@ namespace DXMapEditer
 			CreateWindow(TEXT("static"), TEXT("Move Speed"), WS_CHILD | WS_VISIBLE,
 				15, 20, 100, 25, hWnd, (HMENU)-1, _hInst, NULL);
 
-			_MoveSpeedEdit = CreateWindow(TEXT("edit"), TEXT("100"), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
+			_MoveSpeedEdit = CreateWindow(TEXT("edit"), TEXT("10"), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
 				120, 20, 50, 25, hWnd, (HMENU)MOVE_SPEED_EDIT, _hInst, NULL);
 
 			CreateWindow(TEXT("button"), TEXT("Go To Origin"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
@@ -127,24 +129,51 @@ namespace DXMapEditer
 
 	}
 
-	void OptionWindow::CommandProc(WPARAM wParam, LPARAM lParam)
+	const int editMaxLength = 128;
+	void OptionWindow::CommandProc(
+		WPARAM wParam,
+		LPARAM lParam)
 	{
+		int value = 0;
 		switch (LOWORD(wParam))
 		{
-		case MOVE_SPEED_EDIT :
+		case MOVE_SPEED_EDIT:
 		{
-			switch (HIWORD(lParam))
+			switch (HIWORD(wParam))
 			{
-			case EN_CHANGE :
-				// TODO :: 여기서부터 시작.
+			case EN_CHANGE:
+			{
+				value = GetDlgItemInt(_hThis, MOVE_SPEED_EDIT, NULL, FALSE);
+				auto iter = _funcMap.find(OPT_WINDOW_FUNCTIONS::CAMERA_MOVE_SPEED_CHANGE);
+
+				if (iter == _funcMap.end())
+				{
+					OutputDebugString(L"Invalid function Number");
+					break;
+				}
+
+				iter->second(value);
+				break;
+			}
+			default:
 				break;
 			}
 		}
-
 		}
 	}
 
-	LRESULT OptionWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
+	void OptionWindow::RegistVariableChangeFunc(
+		OPT_WINDOW_FUNCTIONS funcNum,
+		DetectFunc functor)
+	{
+		_funcMap.emplace(funcNum, functor);
+	}
+
+	LRESULT OptionWindowProc(
+		HWND hWnd,
+		UINT iMessage,
+		WPARAM wParam,
+		LPARAM lParam)
 	{
 		switch (iMessage)
 		{
@@ -158,7 +187,6 @@ namespace DXMapEditer
 			optionWindowHandle->CommandProc(wParam, lParam);
 			break;
 		}
-
 		}
 
 		return (DefWindowProc(hWnd, iMessage, wParam, lParam));
