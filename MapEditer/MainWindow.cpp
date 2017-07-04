@@ -9,23 +9,55 @@
 namespace DXMapEditer
 {
 	MainWindow::MainWindow(HINSTANCE hInstance, int nCmdShow)
-		: _hInst(hInstance), _CmdShow(nCmdShow)
+		: _hInst(hInstance), _cmdShow(nCmdShow)
 	{
 #pragma region UtilFunctions
 
 		auto registFunc = [this]()
 		{
-			_pOptionWindow->RegistVariableChangeFunc(
+			_optWindow->RegistVariableChangeFunc(
 				OPT_WINDOW_FUNCTIONS::CAMERA_MOVE_SPEED_CHANGE,
-				[this](int changeValue) { _pDXWindow->SetCameraMove(changeValue); });
+				[this](int changeValue) { _dxWindow->SetCameraMove(changeValue); });
+
+			_optWindow->RegistVariableChangeFunc(
+				OPT_WINDOW_FUNCTIONS::CHECK_WIREFRAME,
+				[this](int flag) { _dxWindow->CheckoutWireframe(flag); });
+
+			_optWindow->RegistVariableChangeFunc(
+				OPT_WINDOW_FUNCTIONS::GO_TO_ORIGIN_CLICKED,
+				[this](int flag) { _dxWindow->GoCameraToOrigin(flag); });
+
+			_optWindow->RegistVariableChangeFunc(
+				OPT_WINDOW_FUNCTIONS::PICKING_MOVE_SELECTED,
+				[this](int pickedButton) { _dxWindow->SetPickingType(pickedButton); });
+
+			_optWindow->RegistVariableChangeFunc(
+				OPT_WINDOW_FUNCTIONS::PICKING_RISE_SELECTED,
+				[this](int pickedButton) { _dxWindow->SetPickingType(pickedButton); });
+
+			_optWindow->RegistVariableChangeFunc(
+				OPT_WINDOW_FUNCTIONS::PICKING_DOWN_SELECTED,
+				[this](int pickedButton) { _dxWindow->SetPickingType(pickedButton); });
+
+			_optWindow->RegistVariableChangeFunc(
+				OPT_WINDOW_FUNCTIONS::PICKING_STND_SELECTED,
+				[this](int pickedButton) { _dxWindow->SetPickingType(pickedButton); });
+
+			_optWindow->RegistVariableChangeFunc(
+				OPT_WINDOW_FUNCTIONS::PICKING_RANGE_CHANGE,
+				[this](int rangeChange) { _dxWindow->SetSelectRange(rangeChange); });
+
+			_optWindow->RegistVariableChangeFunc(
+				OPT_WINDOW_FUNCTIONS::GRID_INITIALIZE_CLICKED,
+				[this](int initFlag) { _dxWindow->GridInitialize(initFlag); });
 		};
 
 #pragma endregion
 
-		_pTimer = std::make_unique<MyTimer>();
-		_pTimer->Init();
-		_pDXWindow = std::make_unique<DirectXWindow>();
-		_pOptionWindow = std::make_unique<OptionWindow>();
+		_timer = std::make_unique<MyTimer>();
+		_timer->Init();
+		_dxWindow = std::make_unique<DirectXWindow>();
+		_optWindow = std::make_unique<OptionWindow>();
 
 		mainWindowHandler = this;
 
@@ -43,16 +75,16 @@ namespace DXMapEditer
 	{
 		const float frameTime = 1 / (float)60;
 		static float AccTime = 0;
-		_pTimer->ProcessTime();
+		_timer->ProcessTime();
 
 		while (true)
 		{
-			AccTime += _pTimer->GetElapsedTime();
-			if (PeekMessage(&_Msg, NULL, 0, 0, PM_REMOVE))
+			AccTime += _timer->GetElapsedTime();
+			if (PeekMessage(&_msg, NULL, 0, 0, PM_REMOVE))
 			{
-				if (_Msg.message == WM_QUIT) break;
-				TranslateMessage(&_Msg);
-				DispatchMessage(&_Msg);
+				if (_msg.message == WM_QUIT) break;
+				TranslateMessage(&_msg);
+				DispatchMessage(&_msg);
 			}
 			else
 			{
@@ -76,18 +108,18 @@ namespace DXMapEditer
 		WndClass.hIcon = LoadIcon(NULL, IDI_APPLICATION);
 		WndClass.hInstance = _hInst;
 		WndClass.lpfnWndProc = WndProc;
-		WndClass.lpszClassName = _AppName;
+		WndClass.lpszClassName = _appName;
 		WndClass.lpszMenuName = NULL;
 		WndClass.style = CS_HREDRAW | CS_VREDRAW;
 
 		if (!RegisterClass(&WndClass)) return false;
 
 		_hWnd = CreateWindow(
-			_AppName, _AppName, WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT, _ClientWidth, _ClientHeight,
+			_appName, _appName, WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT, CW_USEDEFAULT, _clientWidth, _clientHeight,
 			NULL, (HMENU)NULL, _hInst, NULL);
 
-		ShowWindow(_hWnd, _CmdShow);
+		ShowWindow(_hWnd, _cmdShow);
 		return true;
 	}
 
@@ -102,25 +134,25 @@ namespace DXMapEditer
 		if (DialogBox(_hInst, MAKEINTRESOURCE(INIT_DIALOG), _hWnd, InitDialogProc) == IDOK)
 		{
 			// Deliver input value
-			_pDXWindow->SetGridVariables(mapWidth, mapHeight, gridWidth, gridHeight);
+			_dxWindow->SetGridVariables(mapWidth, mapHeight, gridWidth, gridHeight);
 			InvalidateRect(_hWnd, NULL, TRUE);
 		}
 	}
 
 	void MainWindow::makeWindows(HWND hWnd)
 	{
-		_pDXWindow->CreateDXWindow(_hInst, hWnd);
-		_pOptionWindow->CreateOptionWindow(_hInst, hWnd);
+		_dxWindow->CreateDXWindow(_hInst, hWnd);
+		_optWindow->CreateOptionWindow(_hInst, hWnd);
 	}
 
 	void MainWindow::calcProc(const float deltaTime)
 	{
-		_pDXWindow.get()->CalcProc(deltaTime);
+		_dxWindow.get()->CalcProc(deltaTime);
 	}
 
 	void MainWindow::drawProc(const float deltaTime)
 	{
-		_pDXWindow.get()->DrawProc(deltaTime);
+		_dxWindow.get()->DrawProc(deltaTime);
 	}
 
 	LRESULT CALLBACK WndProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)
@@ -190,8 +222,8 @@ namespace DXMapEditer
 		case WM_SIZE :
 			if (wParam != SIZE_MINIMIZED)
 			{
-				_pDXWindow->MoveDXWindow();
-				_pOptionWindow->MoveOptionWindow();
+				_dxWindow->MoveDXWindow();
+				_optWindow->MoveOptionWindow();
 			}
 			break;
 		}

@@ -160,4 +160,11 @@ namespace DXMapEditer
 		m_MoveSpeed = static_cast<float>(moveSpeed) * 0.001f;
 	}
 
+	void Camera::GoOrigin(int clientWidth, int clientHeight)
+	{
+		SetPosition(0.0f, 50.0f, -8.0f);
+		SetLens(XM_PIDIV2, (clientWidth / (float)clientHeight), 0.3f, 1000.0f);
+		UpdateViewMatrix();
+	}
+
 }

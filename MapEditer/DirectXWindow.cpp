@@ -93,7 +93,7 @@ namespace DXMapEditer
 		auto InitMatrix = [this]()
 		{
 			_world = XMMatrixIdentity();
-			_camera->SetPosition(0.0f, 0.0f, -8.0f);
+			_camera->SetPosition(0.0f, 50.0f, -8.0f);
 			_camera->SetLens(XM_PIDIV2, _clientWidth / (FLOAT)_clientHeight, 0.3f, 1000.0f);
 			_camera->UpdateViewMatrix();
 
@@ -193,6 +193,45 @@ namespace DXMapEditer
 	void DirectXWindow::SetCameraMove(int cameraMoveSpeed)
 	{
 		_camera->SetMoveSpeed(cameraMoveSpeed);
+	}
+
+	void DirectXWindow::SetPickingType(int pickedButton)
+	{
+		// 들어온 값이 pickedType이 아니라면 그냥 반환. 
+		if (pickedButton < (int)OPT_WINDOW_FUNCTIONS::PICKING_MOVE_SELECTED
+			|| pickedButton > (int)OPT_WINDOW_FUNCTIONS::PICKING_STND_SELECTED)
+		{
+			return;
+		}
+
+		_pickingType = pickedButton;
+	}
+
+	void DirectXWindow::SetSelectRange(int range)
+	{
+		_pickingRange = range;
+	}
+
+	void DirectXWindow::GridInitialize(int initFlag)
+	{
+		_meshData->Clear();
+	}
+
+	void DirectXWindow::CheckoutWireframe(int flag)
+	{
+		if (_isDrawWireFrame)
+		{
+			_isDrawWireFrame = false;
+		}
+		else
+		{
+			_isDrawWireFrame = true;
+		}
+	}
+
+	void DirectXWindow::GoCameraToOrigin(int flag)
+	{
+		_camera->GoOrigin(_clientWidth, _clientHeight);
 	}
 
 	LRESULT DirectXWindowProc(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam)

@@ -33,19 +33,19 @@ namespace DXMapEditer
 
 		// Window Variable
 		HINSTANCE _hInst;
-		int _CmdShow = 0;
-		LPCTSTR _AppName = L"DirectX Map Editer v1.0.0";
-		MSG _Msg;
+		int _cmdShow = 0;
+		LPCTSTR _appName = L"DirectX Map Editer v1.1.0";
+		MSG _msg;
 		HWND _hWnd;
-		HWND _OptionWindow;
+		HWND _optionWindowHandle;
 
-		int _ClientWidth = 1100;
-		int _ClientHeight = 600;
+		int _clientWidth = 1100;
+		int _clientHeight = 600;
 
 		// Common Variable
-		std::unique_ptr<MyTimer> _pTimer;
-		std::unique_ptr<DirectXWindow> _pDXWindow;
-		std::unique_ptr<OptionWindow> _pOptionWindow;
+		std::unique_ptr<MyTimer> _timer;
+		std::unique_ptr<DirectXWindow> _dxWindow;
+		std::unique_ptr<OptionWindow> _optWindow;
 	};
 
 	// Pointer directing Main Window Instance (For WndProc Func)

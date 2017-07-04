@@ -10,10 +10,11 @@
 #define DOWN_RADIO_BUTTON 2003
 #define STANDARDIZATION_RADIO_BUTTON 2004
 #define RANGE_VALUE_EDIT 2005
-#define GRID_INIT_BUTTON 3001
-#define SAVE_BUTTON 4001
-#define LOAD_BUTTON 4002
-#define TEXTURE_BUTTON 4003
+#define GRID_INIT_BUTTON 2006
+#define GRID_SETTING 2007
+#define SAVE_BUTTON 3001
+#define LOAD_BUTTON 3002
+#define TEXTURE_BUTTON 3003
 
 namespace DXMapEditer
 {
@@ -98,7 +99,7 @@ namespace DXMapEditer
 			CreateWindow(TEXT("static"), TEXT(" Range"), WS_CHILD | WS_VISIBLE,
 				120, 120, 55, 25, hWnd, (HMENU)-1, _hInst, NULL);
 
-			_RangeEdit = CreateWindow(TEXT("edit"), TEXT("15"), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
+			_RangeEdit = CreateWindow(TEXT("edit"), TEXT("25"), WS_CHILD | WS_VISIBLE | WS_BORDER | ES_NUMBER,
 				180, 120, 90, 25, hWnd, (HMENU)RANGE_VALUE_EDIT, _hInst, NULL);
 
 			CreateWindow(TEXT("button"), TEXT("Gird Initialize"), WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
@@ -134,7 +135,6 @@ namespace DXMapEditer
 		WPARAM wParam,
 		LPARAM lParam)
 	{
-		int value = 0;
 		switch (LOWORD(wParam))
 		{
 		case MOVE_SPEED_EDIT:
@@ -142,8 +142,8 @@ namespace DXMapEditer
 			switch (HIWORD(wParam))
 			{
 			case EN_CHANGE:
-			{
-				value = GetDlgItemInt(_hThis, MOVE_SPEED_EDIT, NULL, FALSE);
+			{	
+				int value = GetDlgItemInt(_hThis, MOVE_SPEED_EDIT, NULL, FALSE);
 				auto iter = _funcMap.find(OPT_WINDOW_FUNCTIONS::CAMERA_MOVE_SPEED_CHANGE);
 
 				if (iter == _funcMap.end())

@@ -74,8 +74,10 @@ namespace DXMapEditer
 		// After modifying camera position/orientation, call to rebuild the view matrix.
 		void UpdateViewMatrix();
 
+		// Custom Functions
 		float GetMoveSpeed() const { return m_MoveSpeed; };
 		void SetMoveSpeed(const int moveSpeed);
+		void GoOrigin(int clientWidth, int clientHeight);
 
 	private:
 

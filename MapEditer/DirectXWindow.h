@@ -11,6 +11,7 @@
 #pragma comment(lib, "Effects11d.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 
+#include "Definition.h"
 
 namespace DXMapEditer
 {
@@ -28,44 +29,61 @@ namespace DXMapEditer
 		DirectXWindow() = default;
 		~DirectXWindow();
 
-		void CreateDXWindow(HINSTANCE hInst, HWND hWnd);
-		void MoveDXWindow();
-		void SetGridVariables(int mapWidth, int mapHeight, int gridWidth, int gridHeight);
+		void			 CreateDXWindow(
+							HINSTANCE hInst,
+							HWND hWnd);
 
-		void CalcProc(const float deltaTime);
-		void DrawProc(const float deltaTime);
+		void			 MoveDXWindow();
 
-		LRESULT CALLBACK MessageHandler(HWND hWnd, UINT iMessage, WPARAM wParam, LPARAM lParam);
+		void			 SetGridVariables(
+							int mapWidth,
+							int mapHeight,
+							int gridWidth,
+							int gridHeight);
+
+		void			 CalcProc(const float deltaTime);
+		void			 DrawProc(const float deltaTime);
+
+		LRESULT CALLBACK MessageHandler(
+							HWND hWnd,
+							UINT iMessage,
+							WPARAM wParam,	
+							LPARAM lParam);
 
 		// Setter
-		void SetCameraMove(int cameraMoveSpeed);
+		void			 SetCameraMove(int cameraMoveSpeed);
+		void			 SetPickingType(int pickedButton);
+		void			 SetSelectRange(int range);
+		void			 GridInitialize(int init);
+		void			 CheckoutWireframe(int flag);
+		void			 GoCameraToOrigin(int flag);
 		
 	private :
 
 		// DirectX Fuctions
-		bool createDeviceAndSwapChain();
-		bool createRenderTargetView();
-		bool createViewPort();
-		bool createDepthStencilTexture();
-		bool createEffectShader();
-		bool buildGeometryBuffers();
-		bool createConstantBuffer();
-		bool createRenderState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode);
-		void loadTexture();
+		bool			 createDeviceAndSwapChain();
+		bool			 createRenderTargetView();
+		bool			 createViewPort();
+		bool			 createDepthStencilTexture();
+		bool			 createEffectShader();
+		bool			 buildGeometryBuffers();
+		bool			 createConstantBuffer();
+		bool			 createRenderState(D3D11_FILL_MODE fillMode, D3D11_CULL_MODE cullMode);
+		void			 loadTexture();
 
-		void checkDrawEnabled();
-		void cleanupDevice();
-		void calculateMatrixForHeightMap(const float deltaTime);
-		void geometryHeightChange(int inputKey);
-		XMFLOAT4 getColorByHeight(float height);
+		void			 checkDrawEnabled();
+		void			 cleanupDevice();
+		void			 calculateMatrixForHeightMap(const float deltaTime);
+		void			 geometryHeightChange(int inputKey);
+		XMFLOAT4		 getColorByHeight(float height);
 		std::vector<int> getSelectRange();
-		void pick(int sx, int sy);
+		void			 pick(int sx, int sy);
 
 		// InputFunctions
-		void onKeyboardInput(float deltaTime);
-		void onMouseDown(WPARAM btnState, int x, int y);
-		void onMouseUp(WPARAM btnState, int x, int y);
-		void onMouseMove(WPARAM btnState, int x, int y);
+		void			 onKeyboardInput(float deltaTime);
+		void			 onMouseDown(WPARAM btnState, int x, int y);
+		void			 onMouseUp(WPARAM btnState, int x, int y);
+		void			 onMouseMove(WPARAM btnState, int x, int y);
 
 	private :
 
@@ -120,6 +138,7 @@ namespace DXMapEditer
 		XMFLOAT4                  _lightDirection        = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
 		XMFLOAT4                  _lightColor            = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };
 		UINT	                  _pickedTriangle        = -1;
+		int						  _pickingType			 = (int)OPT_WINDOW_FUNCTIONS::PICKING_MOVE_SELECTED;
 
 		// Common Variable
 	};

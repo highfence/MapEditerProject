@@ -6,7 +6,23 @@ namespace DXMapEditer
 {
 	enum class OPT_WINDOW_FUNCTIONS : int
 	{
+		NONE,
+
 		CAMERA_MOVE_SPEED_CHANGE,
+		CHECK_WIREFRAME,
+		GO_TO_ORIGIN_CLICKED,
+
+		PICKING_MOVE_SELECTED,
+		PICKING_RISE_SELECTED,
+		PICKING_DOWN_SELECTED,
+		PICKING_STND_SELECTED,
+		PICKING_RANGE_CHANGE,
+		GRID_INITIALIZE_CLICKED,
+
+		DATA_SAVE,
+		DATA_LOAD,
+		TEXTURE_SELECT_CLICKED,
+
 		FUNC_NUM
 	};
 
@@ -76,10 +92,18 @@ namespace DXMapEditer
 			}
 		}
 
-		UINT GetWidthNum() const { return widthNum; };
-		UINT GetHeightNum() const { return heightNum; };
-		void SetWidthNum(UINT num) { widthNum = num; };
-		void SetHeightNum(UINT num) { heightNum = num; };
+		UINT GetWidthNum() const { return widthNum; }
+		UINT GetHeightNum() const { return heightNum; }
+		void SetWidthNum(UINT num) { widthNum = num; }
+		void SetHeightNum(UINT num) { heightNum = num; }
+		void Clear()
+		{
+			Vertices.clear();
+			Indices32.clear();
+			m_Indices16.clear();
+			widthNum = 0;
+			heightNum = 0;
+		}
 
 	private :
 		std::vector<uint16_t> m_Indices16;
