@@ -707,7 +707,7 @@ namespace DXMapEditer
 		_swapChain->Present(0, 0);
 	}
 
-	const float changeDelta = 0.3f;
+	const float changeDelta = 0.1f;
 	void DirectXWindow::geometryHeightChange(int inputKey)
 	{
 #pragma region util
