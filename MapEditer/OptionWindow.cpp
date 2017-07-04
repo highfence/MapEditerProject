@@ -159,13 +159,13 @@ namespace DXMapEditer
 		{
 			switch (HIWORD(wParam))
 			{
-			case EN_CHANGE:
+			case EN_CHANGE :
 			{	
 				int value = GetDlgItemInt(_hThis, MOVE_SPEED_EDIT, NULL, FALSE);
 				findFuncAndRun(OPT_WINDOW_FUNCTIONS::CAMERA_MOVE_SPEED_CHANGE, value);
 				break;
 			}
-			default:
+			default :
 				break;
 			}
 		}
@@ -179,6 +179,21 @@ namespace DXMapEditer
 			findFuncAndRun(OPT_WINDOW_FUNCTIONS::GO_TO_ORIGIN_CLICKED, 0);
 			break;
 		}
+		case RANGE_VALUE_EDIT :
+		{
+			switch (HIWORD(wParam))
+			{
+			case EN_CHANGE :
+			{
+				int value = GetDlgItemInt(_hThis, RANGE_VALUE_EDIT, NULL, FALSE);
+				findFuncAndRun(OPT_WINDOW_FUNCTIONS::PICKING_RANGE_CHANGE, value);
+				break;
+			}
+			default :
+				break;
+			}
+		}
+
 
 		}
 	}
