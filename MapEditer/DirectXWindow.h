@@ -74,7 +74,7 @@ namespace DXMapEditer
 		void			 checkDrawEnabled();
 		void			 cleanupDevice();
 		void			 calculateMatrixForHeightMap(const float deltaTime);
-		void			 geometryHeightChange(int inputKey);
+		void			 geometryHeightChange();
 		XMFLOAT4		 getColorByHeight(float height);
 		std::vector<int> getSelectRange();
 		void			 pick(int sx, int sy);
@@ -92,7 +92,7 @@ namespace DXMapEditer
 		Camera*		              _camera                = nullptr;
 		POINT                     _lastMousePos;
 		float                     _pickingRange          = 25.f;
-		const float               _changeDelta           = 0.1f;
+		const float               _changeDelta           = 0.03f;
 
 		// Window Variable
 		HWND                      _hWnd;
@@ -134,6 +134,7 @@ namespace DXMapEditer
 		XMMATRIX                  _projection;
 		bool		              _isDrawWireFrame       = false;
 		bool		              _isDrawEnabled         = false;
+		bool					  _isLeftMouseDown		 = false;
 
 		/* Picking */
 		XMFLOAT4                  _lightDirection        = { XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), };

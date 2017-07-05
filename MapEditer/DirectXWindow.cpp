@@ -130,6 +130,13 @@ namespace DXMapEditer
 
 	void DirectXWindow::CalcProc(const float deltaTime)
 	{
+		if (_isLeftMouseDown = true &&
+			_pickingType != (int)OPT_WINDOW_FUNCTIONS::PICKING_MOVE_SELECTED &&
+			_pickedTriangle != -1)
+		{
+			geometryHeightChange();
+		}
+
 		_inputLayer->Update();
 		onKeyboardInput(deltaTime);
 
@@ -708,7 +715,7 @@ namespace DXMapEditer
 	}
 
 	const float changeDelta = 0.1f;
-	void DirectXWindow::geometryHeightChange(int inputKey)
+	void DirectXWindow::geometryHeightChange()
 	{
 #pragma region util
 
@@ -722,15 +729,6 @@ namespace DXMapEditer
 			memcpy(mappedData.pData, &_meshData->Vertices[0], sizeof(MyVertex) * _meshData->Vertices.size());
 
 			_immediateContext->Unmap(_heightMapIndexBuffer, 0);
-
-			//MyVertex* v = reinterpret_cast<MyVertex*>(mappedData.pData);
-
-			//auto& vertices = _meshData->Vertices;
-			//for (UINT i = 0; i < _meshData->Vertices.size(); ++i)
-			//{
-			//	v[i].pos = _meshData->Vertices[i].pos;
-			//	v[i].color = _meshData->Vertices[i].color;
-			//}
 		};
 
 		// 거리에 따른 사인 그래프 높이 값을 반환해줌.
@@ -774,15 +772,15 @@ namespace DXMapEditer
 		auto& pickedVertex = vertices[pickedVertexIdx];
 
 		// Vertex의 높이를 조정.
-		if (inputKey == VK_PRIOR)
+		if (_pickingType == (int)OPT_WINDOW_FUNCTIONS::PICKING_RISE_SELECTED)
 		{
-			// PAGE_UP이 눌린 경우, 높이를 올려줌.
+			// RISE가 눌린 경우, 높이를 올려줌.
 			pickedVertex.pos.y += changeDelta;
 			pickedVertex.color = getColorByHeight(pickedVertex.pos.y);
 		}
-		else if (inputKey == VK_NEXT)
+		else if (_pickingType == (int)OPT_WINDOW_FUNCTIONS::PICKING_DOWN_SELECTED)
 		{
-			// PAGE_DOWN이 눌린 경우, 높이를 내려줌.
+			// DONW이 눌린 경우, 높이를 내려줌.
 			pickedVertex.pos.y -= changeDelta;
 			pickedVertex.color = getColorByHeight(pickedVertex.pos.y);
 		}
@@ -802,7 +800,8 @@ namespace DXMapEditer
 
 			auto newHeight = GetSinHeight(pickedVertex.pos.y, dist);
 
-			if (inputKey == VK_PRIOR)
+			// 근처 Vertex 높이 작업.
+			if (_pickingType == (int)OPT_WINDOW_FUNCTIONS::PICKING_RISE_SELECTED)
 			{
 				if (newHeight > vertices[vertexIdx].pos.y)
 				{
@@ -810,7 +809,7 @@ namespace DXMapEditer
 					vertices[vertexIdx].color = getColorByHeight(newHeight);
 				}
 			}
-			else
+			else if (_pickingType == (int)OPT_WINDOW_FUNCTIONS::PICKING_DOWN_SELECTED)
 			{
 				if (newHeight < vertices[vertexIdx].pos.y)
 				{
@@ -818,10 +817,15 @@ namespace DXMapEditer
 					vertices[vertexIdx].color = getColorByHeight(newHeight);
 				}
 			}
+			else if (_pickingType == (int)OPT_WINDOW_FUNCTIONS::PICKING_STND_SELECTED)
+			{
+				if (newHeight < vertices[vertexIdx].pos.y)
+				{
+					vertices[vertexIdx].pos.y = pickedVertex.pos.y;
+					vertices[vertexIdx].color = getColorByHeight(newHeight);
+				}
+			}
 		}
-
-		//DataMapping();
-
 	}
 
 	XMFLOAT4 DirectXWindow::getColorByHeight(float height)
@@ -1055,37 +1059,42 @@ namespace DXMapEditer
 			if (_isDrawWireFrame) _isDrawWireFrame = false;
 			else _isDrawWireFrame = true;
 		}
-		if (_inputLayer->IsKeyDown(VK_PRIOR))
-		{
-			geometryHeightChange(VK_PRIOR);
-		}
-		if (_inputLayer->IsKeyDown(VK_NEXT))
-		{
-			geometryHeightChange(VK_NEXT);
-		}
 
 		_camera->UpdateViewMatrix();
 	}
 
 	void DirectXWindow::onMouseDown(WPARAM btnState, int x, int y)
 	{
-		// 왼쪽 버튼 클릭시 처리.
+		//// 왼쪽 버튼 클릭시 처리.
+		//if ((btnState & MK_LBUTTON) != 0)
+		//{
+		//	_lastMousePos.x = x;
+		//	_lastMousePos.y = y;
+
+		//	SetCapture(_hThis);
+		//}
+		//// 오른쪽 버튼 클릭시 처리.
+		//else if ((btnState & MK_RBUTTON) != 0)
+		//{
+		//	pick(x, y);
+		//}
+		_lastMousePos.x = x;
+		_lastMousePos.y = y;
+
+		SetCapture(_hThis);
+
 		if ((btnState & MK_LBUTTON) != 0)
 		{
-			_lastMousePos.x = x;
-			_lastMousePos.y = y;
-
-			SetCapture(_hThis);
-		}
-		// 오른쪽 버튼 클릭시 처리.
-		else if ((btnState & MK_RBUTTON) != 0)
-		{
+			_isLeftMouseDown = true;
 			pick(x, y);
+
 		}
 	}
 
 	void DirectXWindow::onMouseUp(WPARAM btnState, int x, int y)
 	{
+		_pickedTriangle = -1;
+		_isLeftMouseDown = false;
 		ReleaseCapture();
 	}
 
