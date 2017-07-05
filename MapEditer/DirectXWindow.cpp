@@ -20,7 +20,12 @@
 #pragma comment( lib, "dxgi.lib" )
 #pragma comment( lib, "d3d11.lib" )
 #pragma comment( lib, "d3dx11d.lib" )
+#ifdef _DEBUG
 #pragma comment( lib, "Effects11d.lib" )
+#else
+#pragma comment(lib, "Effects11.lib")
+#endif
+
 
 #include "InputLayer.h"
 #include "Camera.h"
@@ -135,7 +140,7 @@ namespace DXMapEditer
 			_pickingType != (int)OPT_WINDOW_FUNCTIONS::PICKING_MOVE_SELECTED &&
 			_pickedTriangle != -1)
 		{
-			geometryHeightChange();
+			geometryHeightChange(deltaTime);
 		}
 
 		_inputLayer->Update();
@@ -156,7 +161,6 @@ namespace DXMapEditer
 		// Set Input Assembler 
 		_immediateContext->IASetInputLayout(_vertexLayout);
 		_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
 
 		// Texture
 		{
@@ -579,7 +583,7 @@ namespace DXMapEditer
 	{
 		auto hr = D3DX11CreateShaderResourceViewFromFile(
 			_d3dDevice,
-			L"./images.jpg",
+			L"./heightMap.jpg",
 			NULL,
 			NULL,
 			&_textureRV,
@@ -722,7 +726,7 @@ namespace DXMapEditer
 	}
 
 	const float changeDelta = 0.1f;
-	void DirectXWindow::geometryHeightChange()
+	void DirectXWindow::geometryHeightChange(const float deltaTime)
 	{
 #pragma region util
 
@@ -782,13 +786,21 @@ namespace DXMapEditer
 		if (_pickingType == (int)OPT_WINDOW_FUNCTIONS::PICKING_RISE_SELECTED)
 		{
 			// RISE가 눌린 경우, 높이를 올려줌.
-			pickedVertex.pos.y += changeDelta;
+#ifdef DEBUG
+			pickedVertex.pos.y += changeDelta * deltaTime;
+#else
+			pickedVertex.pos.y += changeDelta * deltaTime * 0.05;
+#endif
 			pickedVertex.color = getColorByHeight(pickedVertex.pos.y);
 		}
 		else if (_pickingType == (int)OPT_WINDOW_FUNCTIONS::PICKING_DOWN_SELECTED)
 		{
 			// DONW이 눌린 경우, 높이를 내려줌.
-			pickedVertex.pos.y -= changeDelta;
+#ifdef DEBUG
+			pickedVertex.pos.y -= changeDelta * deltaTime;
+#else
+			pickedVertex.pos.y -= changeDelta * deltaTime * 0.05;
+#endif
 			pickedVertex.color = getColorByHeight(pickedVertex.pos.y);
 		}
 

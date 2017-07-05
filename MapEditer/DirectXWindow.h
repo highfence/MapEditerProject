@@ -74,7 +74,7 @@ namespace DXMapEditer
 		void			 checkDrawEnabled();
 		void			 cleanupDevice();
 		void			 calculateMatrixForHeightMap(const float deltaTime);
-		void			 geometryHeightChange();
+		void			 geometryHeightChange(const float deltaTime);
 		XMFLOAT4		 getColorByHeight(float height);
 		std::vector<int> getSelectRange();
 		void			 pick(int sx, int sy);
