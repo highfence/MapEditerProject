@@ -88,6 +88,7 @@ namespace DXMapEditer
 			createRenderState(
 				D3D11_FILL_SOLID,
 				D3D11_CULL_BACK);
+			loadTexture();
 		};
 
 		auto InitMatrix = [this]()
@@ -155,6 +156,13 @@ namespace DXMapEditer
 		// Set Input Assembler 
 		_immediateContext->IASetInputLayout(_vertexLayout);
 		_immediateContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+
+		// Texture
+		{
+			_immediateContext->PSSetShaderResources(0, 1, &_textureRV);
+			_immediateContext->PSSetSamplers(0, 1, &_samplerLinear);
+		}
 
 		if (_isDrawEnabled)
 		{
@@ -569,7 +577,6 @@ namespace DXMapEditer
 
 	void DirectXWindow::loadTexture()
 	{
-		// TODO :: 구지 필요 없을 것 같긴한데. 일단.
 		auto hr = D3DX11CreateShaderResourceViewFromFile(
 			_d3dDevice,
 			L"./images.jpg",
@@ -1065,19 +1072,6 @@ namespace DXMapEditer
 
 	void DirectXWindow::onMouseDown(WPARAM btnState, int x, int y)
 	{
-		//// 왼쪽 버튼 클릭시 처리.
-		//if ((btnState & MK_LBUTTON) != 0)
-		//{
-		//	_lastMousePos.x = x;
-		//	_lastMousePos.y = y;
-
-		//	SetCapture(_hThis);
-		//}
-		//// 오른쪽 버튼 클릭시 처리.
-		//else if ((btnState & MK_RBUTTON) != 0)
-		//{
-		//	pick(x, y);
-		//}
 		_lastMousePos.x = x;
 		_lastMousePos.y = y;
 
@@ -1087,7 +1081,6 @@ namespace DXMapEditer
 		{
 			_isLeftMouseDown = true;
 			pick(x, y);
-
 		}
 	}
 
@@ -1124,5 +1117,4 @@ namespace DXMapEditer
 
 		_immediateContext->Unmap(_heightMapIndexBuffer, 0);
 	}
-
 }
