@@ -1,8 +1,8 @@
 # MapEditer Project
 ### DirectX 11과 Window Api를 이용한 맵 에디터 프로젝트입니다.
-
-## 현재 진행 상황(17.05.15) :
 ![Alt text](./Screenshot/17.05.15.PNG)
+
+[플레이 영상](https://www.youtube.com/watch?v=Sk9OPXS2uto&t=52s) </br>
 
 #### MapEditer 클래스 구현
 - 윈도우 초기화.
